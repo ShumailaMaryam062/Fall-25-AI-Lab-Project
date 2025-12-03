@@ -1,0 +1,3131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitBurn AI - Smart Calorie Prediction</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --primary: #ff6b6b;
+            --primary-dark: #ee5a5a;
+            --secondary: #4ecdc4;
+            --accent: #ffe66d;
+            --dark: #1a1a2e;
+            --darker: #0f0f1a;
+            --sidebar-bg: #12121e;
+            --light: #dfe6e9;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #d63031;
+            --glass: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.6);
+            --text-muted: rgba(255, 255, 255, 0.4);
+        }
+        [data-theme="light"] {
+            --dark: #f8f9fa;
+            --darker: #e9ecef;
+            --sidebar-bg: #ffffff;
+            --glass: rgba(0, 0, 0, 0.05);
+            --glass-border: rgba(0, 0, 0, 0.1);
+            --text-primary: #1a1a2e;
+            --text-secondary: rgba(26, 26, 46, 0.6);
+            --text-muted: rgba(26, 26, 46, 0.4);
+        }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--dark);
+            min-height: 100vh;
+            color: var(--text-primary);
+            display: flex;
+            transition: all 0.3s ease;
+            overflow-x: hidden;
+        }
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 20% 80%, rgba(255, 107, 107, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(78, 205, 196, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 40%, rgba(102, 126, 234, 0.05) 0%, transparent 40%);
+            animation: bgFloat 20s ease-in-out infinite;
+            z-index: -1;
+            pointer-events: none;
+        }
+        @keyframes bgFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(2%, 2%) rotate(1deg); }
+            66% { transform: translate(-1%, 1%) rotate(-1deg); }
+        }
+        /* Floating Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: floatParticle 15s infinite ease-in-out;
+        }
+        @keyframes floatParticle {
+            0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--sidebar-bg);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding: 25px 20px;
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+        }
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid var(--glass-border);
+            margin-bottom: 25px;
+        }
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            animation: logoPulse 2s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.4);
+        }
+        @keyframes logoPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 107, 107, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(255, 107, 107, 0.6); }
+        }
+        .logo-text h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .logo-text span {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        /* Navigation */
+        .nav-section {
+            margin-bottom: 25px;
+        }
+        .nav-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            padding-left: 12px;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin-bottom: 5px;
+        }
+        .nav-item:hover {
+            background: var(--glass);
+            color: var(--text-primary);
+        }
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(78, 205, 196, 0.1));
+            color: var(--primary);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            animation: activeGlow 2s ease-in-out infinite;
+        }
+        @keyframes activeGlow {
+            0%, 100% { box-shadow: 0 0 5px rgba(255, 107, 107, 0.2); }
+            50% { box-shadow: 0 0 15px rgba(255, 107, 107, 0.4); }
+        }
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        .nav-item span {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        .nav-badge {
+            margin-left: auto;
+            background: var(--primary);
+            color: white;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        /* Sidebar Stats */
+        .sidebar-stats {
+            background: var(--glass);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: auto;
+            margin-bottom: 20px;
+        }
+        .sidebar-stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .sidebar-stat:last-child {
+            border-bottom: none;
+        }
+        .sidebar-stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .sidebar-stat-value {
+            font-weight: 700;
+            color: var(--primary);
+        }
+        /* Theme Toggle in Sidebar */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: var(--glass);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .theme-toggle:hover {
+            background: rgba(255, 107, 107, 0.1);
+        }
+        .theme-toggle-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .theme-toggle i {
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+        .theme-toggle span {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        .toggle-switch {
+            width: 44px;
+            height: 24px;
+            background: var(--glass-border);
+            border-radius: 12px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: var(--primary);
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: all 0.3s ease;
+        }
+        [data-theme="light"] .toggle-switch::after {
+            left: 23px;
+        }
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 30px;
+            min-height: 100vh;
+            background: var(--dark);
+        }
+        /* Top Bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .accuracy-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--success), #00a884);
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            animation: badgeShine 3s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+        }
+        .accuracy-badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shine 3s infinite;
+        }
+        @keyframes shine {
+            0% { left: -100%; }
+            50%, 100% { left: 100%; }
+        }
+        @keyframes badgeShine {
+            0%, 100% { box-shadow: 0 0 10px rgba(0, 184, 148, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(0, 184, 148, 0.6); }
+        }
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
+        }
+        .stat-card:hover::before {
+            left: 100%;
+        }
+        .stat-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(255, 107, 107, 0.15);
+        }
+        .stat-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+        .stat-icon.users { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .stat-icon.calories { background: linear-gradient(135deg, var(--primary), #ff8e53); }
+        .stat-icon.trophy { background: linear-gradient(135deg, var(--accent), #f9ca24); }
+        .stat-icon.steps { background: linear-gradient(135deg, var(--secondary), #44a08d); }
+        .stat-trend {
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .stat-trend.up {
+            background: rgba(0, 184, 148, 0.15);
+            color: var(--success);
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        /* Main Grid Layout */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        /* Glass Card */
+        .glass-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: rgba(255, 107, 107, 0.3);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        .card-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        /* Form Styles */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+        .form-group {
+            position: relative;
+        }
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        .form-input, .form-select {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .form-input:hover, .form-select:hover {
+            border-color: rgba(255, 107, 107, 0.5);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 25px rgba(255, 107, 107, 0.2), inset 0 0 20px rgba(255, 107, 107, 0.05);
+            transform: translateY(-2px);
+        }
+        .form-select option {
+            background: var(--darker);
+            color: var(--text-primary);
+        }
+        .btn-submit {
+            grid-column: span 2;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-family: inherit;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+            animation: buttonPulse 2s ease-in-out infinite;
+        }
+        .btn-submit::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+        .btn-submit:hover::before {
+            left: 100%;
+        }
+        @keyframes buttonPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 107, 0.3); }
+            50% { box-shadow: 0 0 35px rgba(255, 107, 107, 0.5); }
+        }
+        .btn-submit:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(255, 107, 107, 0.4);
+        }
+        /* Feature List */
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 14px;
+            transition: all 0.3s ease;
+        }
+        .feature-item:hover {
+            background: rgba(255, 107, 107, 0.1);
+            transform: translateX(5px);
+        }
+        .feature-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        .feature-text h4 {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .feature-text p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        /* Results Section */
+        .results-section {
+            display: none;
+            margin-top: 30px;
+        }
+        .results-section.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Result Hero */
+        .result-hero {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.15), rgba(78, 205, 196, 0.1));
+            border: 2px solid var(--primary);
+            border-radius: 24px;
+            padding: 50px;
+            text-align: center;
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+            animation: heroGlow 3s ease-in-out infinite;
+        }
+        .result-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 107, 107, 0.1) 0%, transparent 70%);
+            animation: heroRotate 10s linear infinite;
+        }
+        @keyframes heroRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes heroGlow {
+            0%, 100% { box-shadow: 0 0 30px rgba(255, 107, 107, 0.2); }
+            50% { box-shadow: 0 0 50px rgba(255, 107, 107, 0.4); }
+        }
+        .calories-number {
+            font-size: 5.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent), var(--secondary));
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            animation: gradientFlow 3s ease infinite;
+            position: relative;
+            z-index: 1;
+        }
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .calories-label {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+        .result-timestamp {
+            margin-top: 15px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .metric-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 20px 15px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        .metric-card:hover::before {
+            transform: scaleX(1);
+        }
+        .metric-card:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(255, 107, 107, 0.2);
+            border-color: var(--primary);
+        }
+            border-color: var(--primary);
+        }
+        .metric-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 10px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .metric-icon.bmi { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .metric-icon.fitness { background: linear-gradient(135deg, #00b894, #00a884); }
+        .metric-icon.heart { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        .metric-icon.steps { background: linear-gradient(135deg, #f39c12, #e67e22); }
+        .metric-icon.workout { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        .metric-icon.score { background: linear-gradient(135deg, #e84393, #d63384); }
+        .metric-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+        .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .metric-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        /* Section Card */
+        .section-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        /* Suggestions */
+        .suggestion-item {
+            display: flex;
+            gap: 15px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 14px;
+            margin-bottom: 10px;
+            border-left: 3px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+        .suggestion-item:hover {
+            background: rgba(255, 107, 107, 0.08);
+            transform: translateX(5px);
+        }
+        .suggestion-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 107, 107, 0.15);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+        .suggestion-content h4 {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .suggestion-content p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        /* Achievement */
+        .achievement-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 16px;
+            background: linear-gradient(135deg, rgba(255, 230, 109, 0.12), rgba(255, 230, 109, 0.05));
+            border: 1px solid rgba(255, 230, 109, 0.25);
+            border-radius: 14px;
+            margin-bottom: 10px;
+        }
+        .achievement-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #f9ca24, #f39c12);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        .achievement-content h4 {
+            color: var(--accent);
+            font-weight: 600;
+        }
+        .achievement-content p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        /* Warning */
+        .warning-item {
+            display: flex;
+            gap: 15px;
+            padding: 16px;
+            background: linear-gradient(135deg, rgba(214, 48, 49, 0.12), rgba(214, 48, 49, 0.05));
+            border: 1px solid rgba(214, 48, 49, 0.25);
+            border-radius: 14px;
+            margin-bottom: 10px;
+        }
+        .warning-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #d63031, #c0392b);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .warning-content h4 {
+            color: #ff7675;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .data-table th, .data-table td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .data-table th {
+            color: var(--primary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+        .data-table tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .intensity-tag {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .intensity-tag.high { background: rgba(214, 48, 49, 0.15); color: #ff7675; }
+        .intensity-tag.moderate { background: rgba(253, 203, 110, 0.15); color: #fdcb6e; }
+        .intensity-tag.low { background: rgba(0, 184, 148, 0.15); color: #00b894; }
+        /* Macros Grid */
+        .macros-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .macro-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 14px;
+            padding: 18px;
+            text-align: center;
+        }
+        .macro-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        .macro-card:nth-child(1) .macro-value { color: #f39c12; }
+        .macro-card:nth-child(2) .macro-value { color: #e74c3c; }
+        .macro-card:nth-child(3) .macro-value { color: #00b894; }
+        .macro-card:nth-child(4) .macro-value { color: #3498db; }
+        .macro-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 3px;
+        }
+        /* Meal Item */
+        .meal-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .meal-time {
+            color: var(--primary);
+            font-weight: 600;
+            min-width: 80px;
+        }
+        .meal-name {
+            font-weight: 500;
+            min-width: 100px;
+        }
+        .meal-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        /* Download Section */
+        .download-section {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(78, 205, 196, 0.1));
+            border: 2px dashed var(--primary);
+            border-radius: 20px;
+            padding: 35px;
+            text-align: center;
+            margin-top: 25px;
+        }
+        .download-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .download-desc {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 35px;
+            background: linear-gradient(135deg, var(--danger), #c0392b);
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        .btn-download:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(214, 48, 49, 0.3);
+        }
+        /* History Section */
+        .history-section {
+            margin-top: 30px;
+        }
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .history-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .btn-clear {
+            padding: 8px 16px;
+            background: rgba(214, 48, 49, 0.15);
+            border: 1px solid rgba(214, 48, 49, 0.3);
+            border-radius: 10px;
+            color: #ff7675;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-clear:hover {
+            background: rgba(214, 48, 49, 0.25);
+        }
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .history-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .history-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+        .history-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary);
+        }
+        .history-card-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .history-calories {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+        .history-date {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-align: right;
+        }
+        .history-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        .history-stat {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .history-stat-value {
+            font-weight: 700;
+            color: var(--secondary);
+        }
+        .history-stat-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+        .history-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .history-badge.normal { background: rgba(0, 184, 148, 0.15); color: #00b894; }
+        .history-badge.underweight { background: rgba(52, 152, 219, 0.15); color: #3498db; }
+        .history-badge.overweight { background: rgba(243, 156, 18, 0.15); color: #f39c12; }
+        .history-badge.obese { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
+        .no-history {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+        .no-history i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.3;
+        }
+        /* Error Box */
+        .error-box {
+            background: linear-gradient(135deg, rgba(214, 48, 49, 0.12), rgba(214, 48, 49, 0.05));
+            border: 1px solid rgba(214, 48, 49, 0.25);
+            border-radius: 18px;
+            padding: 35px;
+            text-align: center;
+            color: #ff7675;
+        }
+        /* Mobile Sidebar Toggle */
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 200;
+            width: 45px;
+            height: 45px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .metrics-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .mobile-toggle {
+                display: flex;
+            }
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+            .macros-grid { grid-template-columns: repeat(2, 1fr); }
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full-width, .btn-submit { grid-column: span 1; }
+            .calories-number { font-size: 3.5rem; }
+            .quick-actions-grid { grid-template-columns: 1fr; }
+        }
+        /* Page Sections */
+        .page-section {
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Quick Actions */
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .quick-action {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .quick-action:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.15);
+        }
+        .quick-action-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 1.5rem;
+            color: white;
+        }
+        .quick-action h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+        .quick-action p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        /* No Results Placeholder */
+        .no-results-placeholder {
+            text-align: center;
+            padding: 80px 30px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+        }
+        /* Charts Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 25px;
+        }
+        .chart-card {
+            padding: 20px;
+        }
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+        @media (max-width: 992px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles">
+        <div class="particle" style="left: 10%; animation-delay: 0s; animation-duration: 12s;"></div>
+        <div class="particle" style="left: 20%; animation-delay: 2s; animation-duration: 15s; background: var(--secondary);"></div>
+        <div class="particle" style="left: 30%; animation-delay: 4s; animation-duration: 18s;"></div>
+        <div class="particle" style="left: 40%; animation-delay: 1s; animation-duration: 14s; background: var(--accent);"></div>
+        <div class="particle" style="left: 50%; animation-delay: 3s; animation-duration: 16s;"></div>
+        <div class="particle" style="left: 60%; animation-delay: 5s; animation-duration: 13s; background: var(--secondary);"></div>
+        <div class="particle" style="left: 70%; animation-delay: 2s; animation-duration: 17s;"></div>
+        <div class="particle" style="left: 80%; animation-delay: 4s; animation-duration: 11s; background: var(--accent);"></div>
+        <div class="particle" style="left: 90%; animation-delay: 1s; animation-duration: 19s;"></div>
+        <div class="particle" style="left: 15%; animation-delay: 6s; animation-duration: 14s; background: var(--secondary);"></div>
+        <div class="particle" style="left: 35%; animation-delay: 7s; animation-duration: 16s;"></div>
+        <div class="particle" style="left: 55%; animation-delay: 8s; animation-duration: 13s; background: var(--accent);"></div>
+        <div class="particle" style="left: 75%; animation-delay: 9s; animation-duration: 15s;"></div>
+        <div class="particle" style="left: 95%; animation-delay: 10s; animation-duration: 12s; background: var(--secondary);"></div>
+    </div>
+    <button class="mobile-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon">🔥</div>
+            <div class="logo-text">
+                <h1>FitBurn AI</h1>
+                <span>Smart Fitness Tracker</span>
+            </div>
+        </div>
+        <nav class="nav-section">
+            <div class="nav-title">Main Menu</div>
+            <a href="javascript:void(0)" class="nav-item active" onclick="showSection('dashboard')">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="javascript:void(0)" class="nav-item" onclick="showSection('predict')">
+                <i class="fas fa-calculator"></i>
+                <span>Predict Calories</span>
+            </a>
+            <a href="javascript:void(0)" class="nav-item" onclick="showSection('results')" {% if not show_result %}style="opacity: 0.5; pointer-events: none;"{% endif %}>
+                <i class="fas fa-chart-line"></i>
+                <span>Results</span>
+                {% if show_result %}<span class="nav-badge">New</span>{% endif %}
+            </a>
+            <a href="javascript:void(0)" class="nav-item" onclick="showSection('history')">
+                <i class="fas fa-history"></i>
+                <span>History</span>
+                {% if history %}<span class="nav-badge">{{ history|length }}</span>{% endif %}
+            </a>
+        </nav>
+        <nav class="nav-section">
+            <div class="nav-title">Reports</div>
+            <a href="javascript:void(0)" class="nav-item" onclick="showSection('weekly-plan')" {% if not show_result %}style="opacity: 0.5; pointer-events: none;"{% endif %}>
+                <i class="fas fa-dumbbell"></i>
+                <span>Weekly Plan</span>
+            </a>
+            <a href="javascript:void(0)" class="nav-item" onclick="showSection('nutrition')" {% if not show_result %}style="opacity: 0.5; pointer-events: none;"{% endif %}>
+                <i class="fas fa-utensils"></i>
+                <span>Nutrition</span>
+            </a>
+            <a href="javascript:void(0)" class="nav-item" onclick="showSection('ai-insights')" {% if not show_result %}style="opacity: 0.5; pointer-events: none;"{% endif %}>
+                <i class="fas fa-robot"></i>
+                <span>AI Insights</span>
+            </a>
+            <a href="javascript:void(0)" class="nav-item" onclick="showSection('weather')">
+                <i class="fas fa-cloud-sun"></i>
+                <span>Weather Tips</span>
+            </a>
+        </nav>
+        <nav class="nav-section">
+            <div class="nav-title">Tools</div>
+            <a href="javascript:void(0)" class="nav-item" onclick="showSection('timer')">
+                <i class="fas fa-stopwatch"></i>
+                <span>Workout Timer</span>
+            </a>
+            <a href="javascript:void(0)" class="nav-item" onclick="showSection('bmi-calc')">
+                <i class="fas fa-calculator"></i>
+                <span>BMI Calculator</span>
+            </a>
+            <a href="javascript:void(0)" class="nav-item" onclick="showSection('food-calc')">
+                <i class="fas fa-apple-alt"></i>
+                <span>Calorie Counter</span>
+            </a>
+            <a href="javascript:void(0)" class="nav-item" onclick="showSection('motivation')">
+                <i class="fas fa-quote-left"></i>
+                <span>Motivation</span>
+            </a>
+            <a href="javascript:void(0)" class="nav-item" onclick="showSection('gamification')">
+                <i class="fas fa-gamepad"></i>
+                <span>Gamification</span>
+            </a>
+            <a href="javascript:void(0)" class="nav-item" onclick="showSection('chatbot')">
+                <i class="fas fa-robot"></i>
+                <span>AI Chatbot</span>
+            </a>
+        </nav>
+        <div class="sidebar-stats">
+            <div class="sidebar-stat">
+                <span class="sidebar-stat-label">Database Users</span>
+                <span class="sidebar-stat-value">{{ stats.total_users | default(5000) }}+</span>
+            </div>
+            <div class="sidebar-stat">
+                <span class="sidebar-stat-label">Avg Calories</span>
+                <span class="sidebar-stat-value">{{ stats.avg_calories | default(2100) }}</span>
+            </div>
+            <div class="sidebar-stat">
+                <span class="sidebar-stat-label">Accuracy</span>
+                <span class="sidebar-stat-value">97.14%</span>
+            </div>
+        </div>
+        <div class="theme-toggle" onclick="toggleTheme()">
+            <div class="theme-toggle-info">
+                <i class="fas fa-moon" id="theme-icon"></i>
+                <span id="theme-text">Dark Mode</span>
+            </div>
+            <div class="toggle-switch"></div>
+        </div>
+    </aside>
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title" id="page-title">Dashboard</h1>
+            <div class="top-bar-right">
+                <div class="accuracy-badge">
+                    <i class="fas fa-check-circle"></i>
+                    97.14% Accuracy
+                </div>
+            </div>
+        </div>
+        <div class="page-section" id="section-dashboard">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon users"><i class="fas fa-users"></i></div>
+                        <span class="stat-trend up"><i class="fas fa-arrow-up"></i> 12%</span>
+                    </div>
+                    <div class="stat-value">{{ stats.total_users | default(5000) }}+</div>
+                    <div class="stat-label">Users Analyzed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon calories"><i class="fas fa-fire"></i></div>
+                        <span class="stat-trend up"><i class="fas fa-arrow-up"></i> 8%</span>
+                    </div>
+                    <div class="stat-value">{{ stats.avg_calories | default(2100) }}</div>
+                    <div class="stat-label">Avg Calories Burned</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon trophy"><i class="fas fa-trophy"></i></div>
+                    </div>
+                    <div class="stat-value">{{ stats.max_calories | default(3500) }}</div>
+                    <div class="stat-label">Max Calories Record</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-icon steps"><i class="fas fa-shoe-prints"></i></div>
+                        <span class="stat-trend up"><i class="fas fa-arrow-up"></i> 5%</span>
+                    </div>
+                    <div class="stat-value">{{ stats.avg_steps | default(7500) }}</div>
+                    <div class="stat-label">Avg Daily Steps</div>
+                </div>
+            </div>
+            <div class="section-card" style="margin-top: 25px;">
+                <h3 class="section-title"><i class="fas fa-bolt"></i> Quick Actions</h3>
+                <div class="quick-actions-grid">
+                    <div class="quick-action" onclick="showSection('predict')">
+                        <div class="quick-action-icon" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">
+                            <i class="fas fa-calculator"></i>
+                        </div>
+                        <h4>New Prediction</h4>
+                        <p>Calculate your calories</p>
+                    </div>
+                    <div class="quick-action" onclick="showSection('history')">
+                        <div class="quick-action-icon" style="background: linear-gradient(135deg, var(--secondary), #44a08d);">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <h4>View History</h4>
+                        <p>Past predictions</p>
+                    </div>
+                    <div class="quick-action" onclick="showSection('results')" {% if not show_result %}style="opacity: 0.5;"{% endif %}>
+                        <div class="quick-action-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h4>Latest Results</h4>
+                        <p>{% if show_result %}View now{% else %}No results yet{% endif %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="page-section" id="section-predict" style="display: none;">
+            <div class="content-grid">
+            <div class="glass-card">
+                <div class="card-header">
+                    <div class="card-icon"><i class="fas fa-sliders-h"></i></div>
+                    <h2 class="card-title">Enter Your Fitness Data</h2>
+                </div>
+                <form action="/predict" method="POST" class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Age</label>
+                        <input type="number" name="age" class="form-input" placeholder="e.g., 25" required min="10" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Gender</label>
+                        <select name="gender" class="form-select" required>
+                            <option value="">Select Gender</option>
+                            <option value="0">👨 Male</option>
+                            <option value="1">👩 Female</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Weight (kg)</label>
+                        <input type="number" name="body_mass" class="form-input" placeholder="e.g., 70" required min="20" max="250">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Height (cm)</label>
+                        <input type="number" name="height" class="form-input" placeholder="e.g., 175" required min="100" max="250">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Daily Steps</label>
+                        <input type="number" name="steps" class="form-input" placeholder="e.g., 8000" required min="0" max="50000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Workout (mins)</label>
+                        <input type="number" name="workout_minutes" class="form-input" placeholder="e.g., 45" required min="0" max="300">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Exercise Type</label>
+                        <select name="exercise_type" class="form-select" required>
+                            <option value="">Select Exercise</option>
+                            <option value="0">🏃 Running</option>
+                            <option value="1">🚴 Cycling</option>
+                            <option value="2">🏊 Swimming</option>
+                            <option value="3">🧘 Yoga</option>
+                            <option value="4">🏋️ Weightlifting</option>
+                            <option value="5">⚡ HIIT</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Heart Rate (BPM)</label>
+                        <input type="number" name="avg_heart_rate" class="form-input" placeholder="e.g., 120" required min="40" max="220">
+                    </div>
+                    <div class="form-group full-width">
+                        <label class="form-label">Intensity Level</label>
+                        <select name="intensity_score" class="form-select" required>
+                            <option value="">Select Intensity</option>
+                            <option value="1">1 - Very Light (Easy walking)</option>
+                            <option value="2">2 - Light (Slow pace)</option>
+                            <option value="3">3 - Moderate (Brisk walk)</option>
+                            <option value="4">4 - Somewhat Hard (Fast walk)</option>
+                            <option value="5">5 - Hard (Jogging)</option>
+                            <option value="6">6 - Harder (Running)</option>
+                            <option value="7">7 - Very Hard (Fast run)</option>
+                            <option value="8">8 - Very Very Hard (Sprint)</option>
+                            <option value="9">9 - Maximum (All-out)</option>
+                            <option value="10">10 - Extreme (Peak performance)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-bolt"></i>
+                        Analyze & Predict
+                    </button>
+                </form>
+            </div>
+            <div class="glass-card">
+                <div class="card-header">
+                    <div class="card-icon"><i class="fas fa-magic"></i></div>
+                    <h2 class="card-title">What You Get</h2>
+                </div>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <div class="feature-icon"><i class="fas fa-fire"></i></div>
+                        <div class="feature-text">
+                            <h4>Calorie Prediction</h4>
+                            <p>AI-powered precise calorie estimation</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon"><i class="fas fa-heartbeat"></i></div>
+                        <div class="feature-text">
+                            <h4>Health Score</h4>
+                            <p>Overall fitness assessment (0-100)</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon"><i class="fas fa-brain"></i></div>
+                        <div class="feature-text">
+                            <h4>AI Suggestions</h4>
+                            <p>Personalized health recommendations</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon"><i class="fas fa-calendar-alt"></i></div>
+                        <div class="feature-text">
+                            <h4>Weekly Plan</h4>
+                            <p>Custom workout schedule</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon"><i class="fas fa-utensils"></i></div>
+                        <div class="feature-text">
+                            <h4>Nutrition Guide</h4>
+                            <p>Macro & meal planning</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon"><i class="fas fa-file-pdf"></i></div>
+                        <div class="feature-text">
+                            <h4>PDF Report</h4>
+                            <p>Download complete analysis</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+        <div class="page-section" id="section-results" style="display: none;">
+        {% if show_result %}
+        <div class="results-section show" id="results">
+            {% if error %}
+            <div class="error-box">
+                <i class="fas fa-exclamation-triangle" style="font-size: 2.5rem; margin-bottom: 15px;"></i>
+                <h3>Oops! Something went wrong</h3>
+                <p>{{ error }}</p>
+            </div>
+            {% else %}
+            <div class="result-hero">
+                <p style="color: var(--text-secondary); margin-bottom: 10px;">
+                    <i class="fas fa-fire"></i> Estimated Calories Burned
+                </p>
+                <div class="calories-number">{{ result.calories }}</div>
+                <div class="calories-label">calories</div>
+                <p class="result-timestamp">
+                    <i class="fas fa-clock"></i> {{ result.date }} at {{ result.time }}
+                </p>
+            </div>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-icon bmi"><i class="fas fa-weight"></i></div>
+                    <div class="metric-value">{{ result.bmi }}</div>
+                    <div class="metric-label">BMI Score</div>
+                    <span class="metric-status" style="background: {{ result.bmi_color }}20; color: {{ result.bmi_color }};">{{ result.bmi_status }}</span>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon fitness"><i class="fas fa-{{ result.fitness_icon }}"></i></div>
+                    <div class="metric-value">{{ result.fitness_score }}%</div>
+                    <div class="metric-label">Fitness Level</div>
+                    <span class="metric-status" style="background: rgba(0, 184, 148, 0.15); color: #00b894;">{{ result.fitness_level }}</span>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon heart"><i class="fas fa-heartbeat"></i></div>
+                    <div class="metric-value">{{ result.heart_rate }}</div>
+                    <div class="metric-label">Heart Rate (BPM)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon steps"><i class="fas fa-shoe-prints"></i></div>
+                    <div class="metric-value">{{ result.steps }}</div>
+                    <div class="metric-label">Daily Steps</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon workout"><i class="fas fa-dumbbell"></i></div>
+                    <div class="metric-value">{{ result.workout_mins }}</div>
+                    <div class="metric-label">Workout Mins</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon score"><i class="fas fa-star"></i></div>
+                    <div class="metric-value">{{ result.health_score }}</div>
+                    <div class="metric-label">Health Score</div>
+                </div>
+            </div>
+            <div class="charts-grid">
+                <div class="section-card chart-card">
+                    <h3 class="section-title"><i class="fas fa-chart-pie"></i> Calorie Breakdown</h3>
+                    <div class="chart-container">
+                        <canvas id="calorieChart"></canvas>
+                    </div>
+                </div>
+                <div class="section-card chart-card">
+                    <h3 class="section-title"><i class="fas fa-chart-bar"></i> Fitness Metrics</h3>
+                    <div class="chart-container">
+                        <canvas id="metricsChart"></canvas>
+                    </div>
+                </div>
+                <div class="section-card chart-card">
+                    <h3 class="section-title"><i class="fas fa-chart-line"></i> Weekly Progress</h3>
+                    <div class="chart-container">
+                        <canvas id="progressChart"></canvas>
+                    </div>
+                </div>
+                <div class="section-card chart-card">
+                    <h3 class="section-title"><i class="fas fa-bullseye"></i> Goal Completion</h3>
+                    <div class="chart-container">
+                        <canvas id="goalChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="section-card" id="ai-insights-card">
+                <h3 class="section-title"><i class="fas fa-robot"></i> AI Health Insights</h3>
+                {% if ai_data.warnings %}
+                {% for warning in ai_data.warnings %}
+                <div class="warning-item">
+                    <div class="warning-icon"><i class="fas fa-{{ warning.icon }}"></i></div>
+                    <div class="warning-content">
+                        <h4>{{ warning.title }}</h4>
+                        <p>{{ warning.desc }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% if ai_data.achievements %}
+                {% for achievement in ai_data.achievements %}
+                <div class="achievement-item">
+                    <div class="achievement-icon"><i class="fas fa-{{ achievement.icon }}"></i></div>
+                    <div class="achievement-content">
+                        <h4>{{ achievement.title }}</h4>
+                        <p>{{ achievement.desc }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% for suggestion in ai_data.suggestions %}
+                <div class="suggestion-item">
+                    <div class="suggestion-icon"><i class="fas fa-{{ suggestion.icon }}"></i></div>
+                    <div class="suggestion-content">
+                        <h4>{{ suggestion.title }}</h4>
+                        <p>{{ suggestion.desc }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="section-card" id="weekly-plan-card">
+                <h3 class="section-title"><i class="fas fa-calendar-week"></i> Your Weekly Workout Plan</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Activity</th>
+                            <th>Duration</th>
+                            <th>Intensity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for day, plan in weekly_plan.items() %}
+                        <tr>
+                            <td style="text-transform: capitalize; font-weight: 600;">{{ day }}</td>
+                            <td>{{ plan.activity }}</td>
+                            <td>{{ plan.duration }}</td>
+                            <td>
+                                <span class="intensity-tag {% if 'High' in plan.intensity %}high{% elif 'Moderate' in plan.intensity %}moderate{% else %}low{% endif %}">
+                                    {{ plan.intensity }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="section-card" id="nutrition-card">
+                <h3 class="section-title"><i class="fas fa-utensils"></i> Nutrition Recommendations</h3>
+                <div class="macros-grid">
+                    <div class="macro-card">
+                        <div class="macro-value">{{ nutrition.daily_calories }}</div>
+                        <div class="macro-label">Daily Calories</div>
+                    </div>
+                    <div class="macro-card">
+                        <div class="macro-value">{{ nutrition.protein }}g</div>
+                        <div class="macro-label">Protein</div>
+                    </div>
+                    <div class="macro-card">
+                        <div class="macro-value">{{ nutrition.carbs }}g</div>
+                        <div class="macro-label">Carbs</div>
+                    </div>
+                    <div class="macro-card">
+                        <div class="macro-value">{{ nutrition.fats }}g</div>
+                        <div class="macro-label">Fats</div>
+                    </div>
+                </div>
+                <h4 style="margin: 20px 0 15px; color: var(--primary);">
+                    <i class="fas fa-clock"></i> Meal Schedule
+                </h4>
+                {% for meal in nutrition.meals %}
+                <div class="meal-item">
+                    <span class="meal-time">{{ meal.time }}</span>
+                    <span class="meal-name">{{ meal.meal }}</span>
+                    <span class="meal-desc">{{ meal.suggestion }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="download-section">
+                <h3 class="download-title"><i class="fas fa-file-pdf"></i> Download Complete Report</h3>
+                <p class="download-desc">Get a detailed PDF with analysis, AI suggestions, weekly plan & nutrition guide.</p>
+                <form action="/generate_pdf" method="POST" style="display: inline;">
+                    <input type="hidden" name="age" value="{{ result.age }}">
+                    <input type="hidden" name="gender" value="{% if result.gender == 'Male' %}0{% else %}1{% endif %}">
+                    <input type="hidden" name="body_mass" value="{{ result.body_mass }}">
+                    <input type="hidden" name="height" value="{{ result.height }}">
+                    <input type="hidden" name="steps" value="{{ result.steps }}">
+                    <input type="hidden" name="workout_minutes" value="{{ result.workout_mins }}">
+                    <input type="hidden" name="exercise_type" value="0">
+                    <input type="hidden" name="avg_heart_rate" value="{{ result.heart_rate }}">
+                    <input type="hidden" name="intensity_score" value="{{ result.intensity_score }}">
+                    <button type="submit" class="btn-download">
+                        <i class="fas fa-download"></i>
+                        Download PDF Report
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="no-results-placeholder">
+            <i class="fas fa-chart-line" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 20px;"></i>
+            <h3 style="color: var(--text-secondary); margin-bottom: 10px;">No Results Yet</h3>
+            <p style="color: var(--text-muted);">Make a prediction to see your results here.</p>
+            <button onclick="showSection('predict')" style="margin-top: 20px; padding: 12px 30px; background: var(--primary); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600;">
+                <i class="fas fa-calculator"></i> Make Prediction
+            </button>
+        </div>
+        {% endif %}
+        </div>
+        <div class="page-section" id="section-weekly-plan" style="display: none;">
+            {% if show_result %}
+            <div class="section-card">
+                <h3 class="section-title"><i class="fas fa-calendar-week"></i> Your Weekly Workout Plan</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Activity</th>
+                            <th>Duration</th>
+                            <th>Intensity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for day, plan in weekly_plan.items() %}
+                        <tr>
+                            <td style="text-transform: capitalize; font-weight: 600;">{{ day }}</td>
+                            <td>{{ plan.activity }}</td>
+                            <td>{{ plan.duration }}</td>
+                            <td>
+                                <span class="intensity-tag {% if 'High' in plan.intensity %}high{% elif 'Moderate' in plan.intensity %}moderate{% else %}low{% endif %}">
+                                    {{ plan.intensity }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="no-results-placeholder">
+                <i class="fas fa-dumbbell" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 20px;"></i>
+                <h3 style="color: var(--text-secondary); margin-bottom: 10px;">No Weekly Plan Available</h3>
+                <p style="color: var(--text-muted);">Make a prediction to generate your personalized workout plan.</p>
+            </div>
+            {% endif %}
+        </div>
+        <div class="page-section" id="section-nutrition" style="display: none;">
+            {% if show_result %}
+            <div class="section-card">
+                <h3 class="section-title"><i class="fas fa-utensils"></i> Nutrition Recommendations</h3>
+                <div class="macros-grid">
+                    <div class="macro-card">
+                        <div class="macro-value">{{ nutrition.daily_calories }}</div>
+                        <div class="macro-label">Daily Calories</div>
+                    </div>
+                    <div class="macro-card">
+                        <div class="macro-value">{{ nutrition.protein }}g</div>
+                        <div class="macro-label">Protein</div>
+                    </div>
+                    <div class="macro-card">
+                        <div class="macro-value">{{ nutrition.carbs }}g</div>
+                        <div class="macro-label">Carbs</div>
+                    </div>
+                    <div class="macro-card">
+                        <div class="macro-value">{{ nutrition.fats }}g</div>
+                        <div class="macro-label">Fats</div>
+                    </div>
+                </div>
+                <h4 style="margin: 20px 0 15px; color: var(--primary);">
+                    <i class="fas fa-clock"></i> Meal Schedule
+                </h4>
+                {% for meal in nutrition.meals %}
+                <div class="meal-item">
+                    <span class="meal-time">{{ meal.time }}</span>
+                    <span class="meal-name">{{ meal.meal }}</span>
+                    <span class="meal-desc">{{ meal.suggestion }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-results-placeholder">
+                <i class="fas fa-utensils" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 20px;"></i>
+                <h3 style="color: var(--text-secondary); margin-bottom: 10px;">No Nutrition Data</h3>
+                <p style="color: var(--text-muted);">Make a prediction to get personalized nutrition recommendations.</p>
+            </div>
+            {% endif %}
+        </div>
+        <div class="page-section" id="section-ai-insights" style="display: none;">
+            {% if show_result %}
+            <div class="section-card">
+                <h3 class="section-title"><i class="fas fa-robot"></i> AI Health Insights</h3>
+                {% if ai_data.warnings %}
+                {% for warning in ai_data.warnings %}
+                <div class="warning-item">
+                    <div class="warning-icon"><i class="fas fa-{{ warning.icon }}"></i></div>
+                    <div class="warning-content">
+                        <h4>{{ warning.title }}</h4>
+                        <p>{{ warning.desc }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% if ai_data.achievements %}
+                {% for achievement in ai_data.achievements %}
+                <div class="achievement-item">
+                    <div class="achievement-icon"><i class="fas fa-{{ achievement.icon }}</i></div>
+                    <div class="achievement-content">
+                        <h4>{{ achievement.title }}</h4>
+                        <p>{{ achievement.desc }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% for suggestion in ai_data.suggestions %}
+                <div class="suggestion-item">
+                    <div class="suggestion-icon"><i class="fas fa-{{ suggestion.icon }}"></i></div>
+                    <div class="suggestion-content">
+                        <h4>{{ suggestion.title }}</h4>
+                        <p>{{ suggestion.desc }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-results-placeholder">
+                <i class="fas fa-robot" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 20px;"></i>
+                <h3 style="color: var(--text-secondary); margin-bottom: 10px;">No AI Insights</h3>
+                <p style="color: var(--text-muted);">Make a prediction to get personalized AI health recommendations.</p>
+            </div>
+            {% endif %}
+        </div>
+        <div class="page-section" id="section-weather" style="display: none;">
+            <div class="section-card">
+                <h3 class="section-title"><i class="fas fa-cloud-sun"></i> Weather-Based Workout Recommendations</h3>
+                <div id="weather-loading" style="text-align: center; padding: 40px;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary);"></i>
+                    <p style="margin-top: 15px; color: var(--text-secondary);">Fetching weather data...</p>
+                </div>
+                <div id="weather-content" style="display: none;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                        <div style="background: linear-gradient(135deg, #4ecdc4, #44a3aa); padding: 25px; border-radius: 15px; text-align: center; color: white;">
+                            <i class="fas fa-thermometer-half" style="font-size: 2.5rem; margin-bottom: 10px;"></i>
+                            <div id="weather-temp" style="font-size: 2.5rem; font-weight: 700;">--°C</div>
+                            <div style="opacity: 0.8;">Temperature</div>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #667eea, #5a67d8); padding: 25px; border-radius: 15px; text-align: center; color: white;">
+                            <i id="weather-icon-main" class="fas fa-cloud" style="font-size: 2.5rem; margin-bottom: 10px;"></i>
+                            <div id="weather-condition" style="font-size: 1.5rem; font-weight: 600;">--</div>
+                            <div style="opacity: 0.8;">Condition</div>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #f093fb, #f5576c); padding: 25px; border-radius: 15px; text-align: center; color: white;">
+                            <i class="fas fa-tint" style="font-size: 2.5rem; margin-bottom: 10px;"></i>
+                            <div id="weather-humidity" style="font-size: 2.5rem; font-weight: 700;">--%</div>
+                            <div style="opacity: 0.8;">Humidity</div>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #ff6b6b, #ee5a5a); padding: 25px; border-radius: 15px; text-align: center; color: white;">
+                            <i class="fas fa-map-marker-alt" style="font-size: 2.5rem; margin-bottom: 10px;"></i>
+                            <div id="weather-city" style="font-size: 1.2rem; font-weight: 600;">--</div>
+                            <div style="opacity: 0.8;">Your Location</div>
+                        </div>
+                    </div>
+                    <h4 style="margin-bottom: 20px; color: var(--primary);"><i class="fas fa-running"></i> Today's Workout Recommendation</h4>
+                    <div id="workout-recommendation" style="background: var(--glass); padding: 25px; border-radius: 15px; border: 1px solid var(--glass-border); margin-bottom: 25px;">
+                    </div>
+                    <h4 style="margin-bottom: 20px; color: var(--secondary);"><i class="fas fa-glass-water"></i> Hydration Tips</h4>
+                    <div id="hydration-tips" style="background: var(--glass); padding: 25px; border-radius: 15px; border: 1px solid var(--glass-border);">
+                    </div>
+                </div>
+                <div id="weather-error" style="display: none; text-align: center; padding: 40px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--warning); margin-bottom: 15px;"></i>
+                    <h4 style="color: var(--text-primary); margin-bottom: 10px;">Unable to fetch weather</h4>
+                    <p style="color: var(--text-secondary); margin-bottom: 20px;">Please allow location access or check your connection.</p>
+                    <button onclick="fetchWeather()" style="padding: 12px 25px; background: var(--primary); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600;">
+                        <i class="fas fa-redo"></i> Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="page-section" id="section-timer" style="display: none;">
+            <div class="section-card">
+                <h3 class="section-title"><i class="fas fa-stopwatch"></i> Workout Timer</h3>
+                <div style="text-align: center; padding: 40px 20px;">
+                    <div id="timer-display" style="font-size: 5rem; font-weight: 700; color: var(--primary); font-family: 'Courier New', monospace; margin-bottom: 30px;">
+                        00:00:00
+                    </div>
+                    <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-bottom: 30px;">
+                        <button onclick="startTimer()" id="btn-start" style="padding: 15px 35px; background: var(--success); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 1.1rem;">
+                            <i class="fas fa-play"></i> Start
+                        </button>
+                        <button onclick="pauseTimer()" id="btn-pause" style="padding: 15px 35px; background: var(--warning); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 1.1rem; display: none;">
+                            <i class="fas fa-pause"></i> Pause
+                        </button>
+                        <button onclick="resetTimer()" style="padding: 15px 35px; background: var(--danger); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 1.1rem;">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                        <button onclick="addLap()" style="padding: 15px 35px; background: var(--secondary); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 1.1rem;">
+                            <i class="fas fa-flag"></i> Lap
+                        </button>
+                    </div>
+                    <div id="laps-container" style="max-height: 200px; overflow-y: auto; text-align: left; background: var(--glass); padding: 20px; border-radius: 15px; display: none;">
+                        <h4 style="color: var(--text-primary); margin-bottom: 15px;"><i class="fas fa-list"></i> Laps</h4>
+                        <div id="laps-list"></div>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px;">
+                    <div style="background: linear-gradient(135deg, #ff6b6b, #ee5a5a); padding: 20px; border-radius: 12px; text-align: center; color: white; cursor: pointer;" onclick="setPresetTimer(300)">
+                        <i class="fas fa-fire" style="font-size: 1.5rem;"></i>
+                        <p style="margin-top: 8px; font-weight: 600;">5 Min HIIT</p>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #4ecdc4, #44a3aa); padding: 20px; border-radius: 12px; text-align: center; color: white; cursor: pointer;" onclick="setPresetTimer(600)">
+                        <i class="fas fa-running" style="font-size: 1.5rem;"></i>
+                        <p style="margin-top: 8px; font-weight: 600;">10 Min Cardio</p>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #667eea, #5a67d8); padding: 20px; border-radius: 12px; text-align: center; color: white; cursor: pointer;" onclick="setPresetTimer(1200)">
+                        <i class="fas fa-dumbbell" style="font-size: 1.5rem;"></i>
+                        <p style="margin-top: 8px; font-weight: 600;">20 Min Strength</p>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #f093fb, #f5576c); padding: 20px; border-radius: 12px; text-align: center; color: white; cursor: pointer;" onclick="setPresetTimer(1800)">
+                        <i class="fas fa-heart" style="font-size: 1.5rem;"></i>
+                        <p style="margin-top: 8px; font-weight: 600;">30 Min Full</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="page-section" id="section-bmi-calc" style="display: none;">
+            <div class="section-card">
+                <h3 class="section-title"><i class="fas fa-calculator"></i> BMI Calculator</h3>
+                <div style="max-width: 500px; margin: 0 auto; padding: 20px;">
+                    <div style="margin-bottom: 20px;">
+                        <label style="color: var(--text-primary); font-weight: 600; display: block; margin-bottom: 8px;">Weight (kg)</label>
+                        <input type="number" id="bmi-weight" placeholder="Enter weight" style="width: 100%; padding: 15px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 10px; color: var(--text-primary); font-size: 1rem;">
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="color: var(--text-primary); font-weight: 600; display: block; margin-bottom: 8px;">Height (cm)</label>
+                        <input type="number" id="bmi-height" placeholder="Enter height" style="width: 100%; padding: 15px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 10px; color: var(--text-primary); font-size: 1rem;">
+                    </div>
+                    <button onclick="calculateBMI()" style="width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 1.1rem;">
+                        <i class="fas fa-calculator"></i> Calculate BMI
+                    </button>
+                    <div id="bmi-result" style="display: none; margin-top: 30px; text-align: center;">
+                        <div id="bmi-value" style="font-size: 4rem; font-weight: 700; color: var(--primary);"></div>
+                        <div id="bmi-category" style="font-size: 1.5rem; font-weight: 600; margin-top: 10px;"></div>
+                        <div id="bmi-message" style="color: var(--text-secondary); margin-top: 15px;"></div>
+                    </div>
+                </div>
+                <div style="margin-top: 30px; background: var(--glass); padding: 20px; border-radius: 15px;">
+                    <h4 style="color: var(--text-primary); margin-bottom: 15px;"><i class="fas fa-info-circle"></i> BMI Categories</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                        <div style="padding: 12px; background: #3498db20; border-left: 4px solid #3498db; border-radius: 8px;">
+                            <span style="color: #3498db; font-weight: 600;">Underweight</span>
+                            <span style="color: var(--text-secondary); display: block; font-size: 0.9rem;">&lt; 18.5</span>
+                        </div>
+                        <div style="padding: 12px; background: #27ae6020; border-left: 4px solid #27ae60; border-radius: 8px;">
+                            <span style="color: #27ae60; font-weight: 600;">Normal</span>
+                            <span style="color: var(--text-secondary); display: block; font-size: 0.9rem;">18.5 - 24.9</span>
+                        </div>
+                        <div style="padding: 12px; background: #f39c1220; border-left: 4px solid #f39c12; border-radius: 8px;">
+                            <span style="color: #f39c12; font-weight: 600;">Overweight</span>
+                            <span style="color: var(--text-secondary); display: block; font-size: 0.9rem;">25 - 29.9</span>
+                        </div>
+                        <div style="padding: 12px; background: #e74c3c20; border-left: 4px solid #e74c3c; border-radius: 8px;">
+                            <span style="color: #e74c3c; font-weight: 600;">Obese</span>
+                            <span style="color: var(--text-secondary); display: block; font-size: 0.9rem;">&gt; 30</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="page-section" id="section-food-calc" style="display: none;">
+            <div class="section-card">
+                <h3 class="section-title"><i class="fas fa-apple-alt"></i> Food Calorie Counter</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+                    <div>
+                        <h4 style="color: var(--text-primary); margin-bottom: 15px;"><i class="fas fa-plus-circle"></i> Add Food</h4>
+                        <div style="margin-bottom: 15px;">
+                            <select id="food-select" style="width: 100%; padding: 12px; background: #1a1a2e; border: 1px solid var(--glass-border); border-radius: 10px; color: #ffffff; font-size: 1rem;">
+                                <option value="" style="background: #1a1a2e; color: #ffffff;">Select Food Item</option>
+                                <optgroup label="🍎 Fruits" style="background: #1a1a2e; color: #ff6b6b;">
+                                    <option value="52" style="background: #1a1a2e; color: #ffffff;">Apple (1 medium) - 52 cal</option>
+                                    <option value="89" style="background: #1a1a2e; color: #ffffff;">Banana (1 medium) - 89 cal</option>
+                                    <option value="47" style="background: #1a1a2e; color: #ffffff;">Orange (1 medium) - 47 cal</option>
+                                    <option value="30" style="background: #1a1a2e; color: #ffffff;">Strawberries (100g) - 30 cal</option>
+                                    <option value="83" style="background: #1a1a2e; color: #ffffff;">Grapes (100g) - 83 cal</option>
+                                </optgroup>
+                                <optgroup label="🥗 Vegetables" style="background: #1a1a2e; color: #4ecdc4;">
+                                    <option value="25" style="background: #1a1a2e; color: #ffffff;">Salad (1 cup) - 25 cal</option>
+                                    <option value="31" style="background: #1a1a2e; color: #ffffff;">Broccoli (100g) - 31 cal</option>
+                                    <option value="41" style="background: #1a1a2e; color: #ffffff;">Carrots (100g) - 41 cal</option>
+                                    <option value="23" style="background: #1a1a2e; color: #ffffff;">Spinach (100g) - 23 cal</option>
+                                </optgroup>
+                                <optgroup label="🍗 Proteins" style="background: #1a1a2e; color: #ff9f43;">
+                                    <option value="165" style="background: #1a1a2e; color: #ffffff;">Chicken Breast (100g) - 165 cal</option>
+                                    <option value="250" style="background: #1a1a2e; color: #ffffff;">Beef (100g) - 250 cal</option>
+                                    <option value="155" style="background: #1a1a2e; color: #ffffff;">Eggs (2 large) - 155 cal</option>
+                                    <option value="208" style="background: #1a1a2e; color: #ffffff;">Salmon (100g) - 208 cal</option>
+                                </optgroup>
+                                <optgroup label="🍚 Carbs" style="background: #1a1a2e; color: #ffd93d;">
+                                    <option value="130" style="background: #1a1a2e; color: #ffffff;">Rice (1 cup) - 130 cal</option>
+                                    <option value="220" style="background: #1a1a2e; color: #ffffff;">Roti/Chapati (2 pcs) - 220 cal</option>
+                                    <option value="79" style="background: #1a1a2e; color: #ffffff;">Bread (2 slices) - 79 cal</option>
+                                    <option value="131" style="background: #1a1a2e; color: #ffffff;">Pasta (100g) - 131 cal</option>
+                                </optgroup>
+                                <optgroup label="🥤 Drinks" style="background: #1a1a2e; color: #74b9ff;">
+                                    <option value="0" style="background: #1a1a2e; color: #ffffff;">Water - 0 cal</option>
+                                    <option value="42" style="background: #1a1a2e; color: #ffffff;">Milk (1 cup) - 42 cal</option>
+                                    <option value="140" style="background: #1a1a2e; color: #ffffff;">Coca Cola (330ml) - 140 cal</option>
+                                    <option value="2" style="background: #1a1a2e; color: #ffffff;">Tea (no sugar) - 2 cal</option>
+                                    <option value="50" style="background: #1a1a2e; color: #ffffff;">Tea (with sugar) - 50 cal</option>
+                                </optgroup>
+                                <optgroup label="🍔 Fast Food" style="background: #1a1a2e; color: #fd79a8;">
+                                    <option value="295" style="background: #1a1a2e; color: #ffffff;">Burger - 295 cal</option>
+                                    <option value="266" style="background: #1a1a2e; color: #ffffff;">Pizza (1 slice) - 266 cal</option>
+                                    <option value="312" style="background: #1a1a2e; color: #ffffff;">French Fries (medium) - 312 cal</option>
+                                    <option value="350" style="background: #1a1a2e; color: #ffffff;">Biryani (1 plate) - 350 cal</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <input type="number" id="food-quantity" value="1" min="1" placeholder="Quantity" style="width: 100%; padding: 12px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 10px; color: var(--text-primary); font-size: 1rem;">
+                        </div>
+                        <button onclick="addFood()" style="width: 100%; padding: 12px; background: var(--success); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600;">
+                            <i class="fas fa-plus"></i> Add to List
+                        </button>
+                        <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--glass-border);">
+                            <h4 style="color: var(--text-primary); margin-bottom: 15px;"><i class="fas fa-edit"></i> Add Custom Food</h4>
+                            <div style="margin-bottom: 12px;">
+                                <input type="text" id="custom-food-name" placeholder="Food Name (e.g., Samosa)" style="width: 100%; padding: 12px; background: #1a1a2e; border: 1px solid var(--glass-border); border-radius: 10px; color: #ffffff; font-size: 1rem;">
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <input type="number" id="custom-food-calories" placeholder="Calories (e.g., 150)" min="1" style="width: 100%; padding: 12px; background: #1a1a2e; border: 1px solid var(--glass-border); border-radius: 10px; color: #ffffff; font-size: 1rem;">
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <input type="number" id="custom-food-quantity" value="1" min="1" placeholder="Quantity" style="width: 100%; padding: 12px; background: #1a1a2e; border: 1px solid var(--glass-border); border-radius: 10px; color: #ffffff; font-size: 1rem;">
+                            </div>
+                            <button onclick="addCustomFood()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600;">
+                                <i class="fas fa-plus-circle"></i> Add Custom Food
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="color: var(--text-primary); margin-bottom: 15px;"><i class="fas fa-list"></i> Today's Food Log</h4>
+                        <div id="food-list" style="background: var(--glass); padding: 20px; border-radius: 15px; min-height: 200px; max-height: 300px; overflow-y: auto;">
+                            <p style="color: var(--text-muted); text-align: center;">No food added yet</p>
+                        </div>
+                        <div style="margin-top: 20px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); padding: 20px; border-radius: 15px; text-align: center; color: white;">
+                            <div style="font-size: 0.9rem; opacity: 0.8;">Total Calories Today</div>
+                            <div id="total-calories" style="font-size: 2.5rem; font-weight: 700;">0</div>
+                            <div style="font-size: 0.9rem; opacity: 0.8;">kcal</div>
+                        </div>
+                        <button onclick="clearFoodLog()" style="width: 100%; margin-top: 15px; padding: 12px; background: var(--danger); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600;">
+                            <i class="fas fa-trash"></i> Clear All
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="page-section" id="section-motivation" style="display: none;">
+            <div class="section-card">
+                <h3 class="section-title"><i class="fas fa-quote-left"></i> Daily Motivation</h3>
+                <div style="text-align: center; padding: 40px 20px;">
+                    <div id="quote-container" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); padding: 40px; border-radius: 20px; border: 1px solid var(--glass-border); position: relative;">
+                        <i class="fas fa-quote-left" style="position: absolute; top: 20px; left: 20px; font-size: 2rem; color: var(--primary); opacity: 0.3;"></i>
+                        <p id="motivation-quote" style="font-size: 1.5rem; color: var(--text-primary); font-style: italic; line-height: 1.8; margin: 20px 0;">
+                            "The only bad workout is the one that didn't happen."
+                        </p>
+                        <p id="quote-author" style="color: var(--primary); font-weight: 600; font-size: 1.1rem;">— Unknown</p>
+                        <i class="fas fa-quote-right" style="position: absolute; bottom: 20px; right: 20px; font-size: 2rem; color: var(--primary); opacity: 0.3;"></i>
+                    </div>
+                    <button onclick="getNewQuote()" style="margin-top: 30px; padding: 15px 40px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 1.1rem; transition: all 0.3s ease;">
+                        <i class="fas fa-sync-alt"></i> New Quote
+                    </button>
+                </div>
+                <div style="margin-top: 30px;">
+                    <h4 style="color: var(--text-primary); margin-bottom: 20px; text-align: center;"><i class="fas fa-fire"></i> Fitness Mantras</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                        <div style="background: linear-gradient(135deg, #ff6b6b, #ee5a5a); padding: 25px; border-radius: 15px; color: white;">
+                            <i class="fas fa-heart" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                            <p style="font-size: 1.1rem; font-weight: 500;">"Your body can stand almost anything. It's your mind you have to convince."</p>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #4ecdc4, #44a3aa); padding: 25px; border-radius: 15px; color: white;">
+                            <i class="fas fa-dumbbell" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                            <p style="font-size: 1.1rem; font-weight: 500;">"Sore today, strong tomorrow. Every rep counts!"</p>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 25px; border-radius: 15px; color: white;">
+                            <i class="fas fa-running" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                            <p style="font-size: 1.1rem; font-weight: 500;">"Don't stop when you're tired. Stop when you're done."</p>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #f093fb, #f5576c); padding: 25px; border-radius: 15px; color: white;">
+                            <i class="fas fa-trophy" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                            <p style="font-size: 1.1rem; font-weight: 500;">"The pain you feel today will be the strength you feel tomorrow."</p>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #ffd93d, #ff9500); padding: 25px; border-radius: 15px; color: white;">
+                            <i class="fas fa-bolt" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                            <p style="font-size: 1.1rem; font-weight: 500;">"Wake up with determination. Go to bed with satisfaction."</p>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #a8e063, #56ab2f); padding: 25px; border-radius: 15px; color: white;">
+                            <i class="fas fa-leaf" style="font-size: 2rem; margin-bottom: 15px;"></i>
+                            <p style="font-size: 1.1rem; font-weight: 500;">"Take care of your body. It's the only place you have to live."</p>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top: 30px; background: var(--glass); padding: 25px; border-radius: 15px; text-align: center;">
+                    <h4 style="color: var(--text-primary); margin-bottom: 15px;"><i class="fas fa-star"></i> Today's Challenge</h4>
+                    <p id="daily-challenge" style="color: var(--text-secondary); font-size: 1.2rem;">Complete 50 jumping jacks, 20 push-ups, and 30 squats!</p>
+                    <button onclick="getNewChallenge()" style="margin-top: 15px; padding: 10px 25px; background: var(--success); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                        <i class="fas fa-random"></i> New Challenge
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="page-section" id="section-gamification" style="display: none;">
+            <div class="section-card">
+                <h3 class="section-title"><i class="fas fa-gamepad"></i> Fitness Gamification</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                    <div style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 25px; border-radius: 15px; text-align: center; color: white;">
+                        <i class="fas fa-star" style="font-size: 2.5rem; margin-bottom: 10px;"></i>
+                        <div id="user-xp" style="font-size: 2rem; font-weight: 700;">0</div>
+                        <div style="opacity: 0.8;">XP Points</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #f093fb, #f5576c); padding: 25px; border-radius: 15px; text-align: center; color: white;">
+                        <i class="fas fa-trophy" style="font-size: 2.5rem; margin-bottom: 10px;"></i>
+                        <div id="user-level" style="font-size: 2rem; font-weight: 700;">1</div>
+                        <div style="opacity: 0.8;">Level</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #4ecdc4, #44a3aa); padding: 25px; border-radius: 15px; text-align: center; color: white;">
+                        <i class="fas fa-fire" style="font-size: 2.5rem; margin-bottom: 10px;"></i>
+                        <div id="user-streak" style="font-size: 2rem; font-weight: 700;">0</div>
+                        <div style="opacity: 0.8;">Day Streak</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #ffd93d, #ff9500); padding: 25px; border-radius: 15px; text-align: center; color: white;">
+                        <i class="fas fa-medal" style="font-size: 2.5rem; margin-bottom: 10px;"></i>
+                        <div id="user-badges" style="font-size: 2rem; font-weight: 700;">0</div>
+                        <div style="opacity: 0.8;">Badges</div>
+                    </div>
+                </div>
+                <div style="background: var(--glass); padding: 20px; border-radius: 15px; margin-bottom: 30px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span style="color: var(--text-primary); font-weight: 600;">Level Progress</span>
+                        <span id="xp-progress-text" style="color: var(--primary);">0 / 100 XP</span>
+                    </div>
+                    <div style="background: var(--glass-border); height: 20px; border-radius: 10px; overflow: hidden;">
+                        <div id="xp-progress-bar" style="background: linear-gradient(90deg, var(--primary), var(--secondary)); height: 100%; width: 0%; transition: width 0.5s ease; border-radius: 10px;"></div>
+                    </div>
+                </div>
+                <div style="background: var(--glass); padding: 25px; border-radius: 15px; margin-bottom: 30px;">
+                    <h4 style="color: var(--text-primary); margin-bottom: 20px;"><i class="fas fa-tasks"></i> Daily Tasks</h4>
+                    <div id="daily-tasks">
+                        <div class="task-item" style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: rgba(102, 126, 234, 0.1); border-radius: 10px; margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <input type="checkbox" id="task1" onchange="completeTask(1, 20)" style="width: 22px; height: 22px; cursor: pointer;">
+                                <label for="task1" style="color: var(--text-primary); cursor: pointer;">Complete a calorie prediction</label>
+                            </div>
+                            <span style="color: var(--success); font-weight: 600;">+20 XP</span>
+                        </div>
+                        <div class="task-item" style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: rgba(78, 205, 196, 0.1); border-radius: 10px; margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <input type="checkbox" id="task2" onchange="completeTask(2, 15)" style="width: 22px; height: 22px; cursor: pointer;">
+                                <label for="task2" style="color: var(--text-primary); cursor: pointer;">Log 3 food items</label>
+                            </div>
+                            <span style="color: var(--success); font-weight: 600;">+15 XP</span>
+                        </div>
+                        <div class="task-item" style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: rgba(240, 147, 251, 0.1); border-radius: 10px; margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <input type="checkbox" id="task3" onchange="completeTask(3, 25)" style="width: 22px; height: 22px; cursor: pointer;">
+                                <label for="task3" style="color: var(--text-primary); cursor: pointer;">Use the workout timer</label>
+                            </div>
+                            <span style="color: var(--success); font-weight: 600;">+25 XP</span>
+                        </div>
+                        <div class="task-item" style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: rgba(255, 217, 61, 0.1); border-radius: 10px; margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <input type="checkbox" id="task4" onchange="completeTask(4, 10)" style="width: 22px; height: 22px; cursor: pointer;">
+                                <label for="task4" style="color: var(--text-primary); cursor: pointer;">Read a motivation quote</label>
+                            </div>
+                            <span style="color: var(--success); font-weight: 600;">+10 XP</span>
+                        </div>
+                        <div class="task-item" style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: rgba(255, 107, 107, 0.1); border-radius: 10px;">
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <input type="checkbox" id="task5" onchange="completeTask(5, 30)" style="width: 22px; height: 22px; cursor: pointer;">
+                                <label for="task5" style="color: var(--text-primary); cursor: pointer;">Complete daily challenge</label>
+                            </div>
+                            <span style="color: var(--success); font-weight: 600;">+30 XP</span>
+                        </div>
+                    </div>
+                </div>
+                <div style="background: var(--glass); padding: 25px; border-radius: 15px;">
+                    <h4 style="color: var(--text-primary); margin-bottom: 20px;"><i class="fas fa-award"></i> Achievements</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px;">
+                        <div id="badge-beginner" class="badge-card" style="text-align: center; padding: 20px; background: var(--glass); border-radius: 12px; opacity: 0.4; transition: all 0.3s;">
+                            <i class="fas fa-baby" style="font-size: 2.5rem; color: #4ecdc4;"></i>
+                            <p style="color: var(--text-primary); margin-top: 10px; font-size: 0.9rem;">Beginner</p>
+                        </div>
+                        <div id="badge-consistent" class="badge-card" style="text-align: center; padding: 20px; background: var(--glass); border-radius: 12px; opacity: 0.4; transition: all 0.3s;">
+                            <i class="fas fa-calendar-check" style="font-size: 2.5rem; color: #667eea;"></i>
+                            <p style="color: var(--text-primary); margin-top: 10px; font-size: 0.9rem;">7 Day Streak</p>
+                        </div>
+                        <div id="badge-warrior" class="badge-card" style="text-align: center; padding: 20px; background: var(--glass); border-radius: 12px; opacity: 0.4; transition: all 0.3s;">
+                            <i class="fas fa-fist-raised" style="font-size: 2.5rem; color: #ff6b6b;"></i>
+                            <p style="color: var(--text-primary); margin-top: 10px; font-size: 0.9rem;">Warrior</p>
+                        </div>
+                        <div id="badge-champion" class="badge-card" style="text-align: center; padding: 20px; background: var(--glass); border-radius: 12px; opacity: 0.4; transition: all 0.3s;">
+                            <i class="fas fa-crown" style="font-size: 2.5rem; color: #ffd93d;"></i>
+                            <p style="color: var(--text-primary); margin-top: 10px; font-size: 0.9rem;">Champion</p>
+                        </div>
+                        <div id="badge-legend" class="badge-card" style="text-align: center; padding: 20px; background: var(--glass); border-radius: 12px; opacity: 0.4; transition: all 0.3s;">
+                            <i class="fas fa-gem" style="font-size: 2.5rem; color: #f093fb;"></i>
+                            <p style="color: var(--text-primary); margin-top: 10px; font-size: 0.9rem;">Legend</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="page-section" id="section-chatbot" style="display: none;">
+            <div class="section-card">
+                <h3 class="section-title"><i class="fas fa-robot"></i> FitBurn AI Assistant</h3>
+                <div style="display: flex; flex-direction: column; height: 600px;">
+                    <div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 20px; background: var(--glass); border-radius: 15px; margin-bottom: 20px;">
+                        <div class="bot-message" style="display: flex; gap: 15px; margin-bottom: 20px;">
+                            <div style="width: 45px; height: 45px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-robot" style="color: white; font-size: 1.2rem;"></i>
+                            </div>
+                            <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2)); padding: 15px 20px; border-radius: 0 15px 15px 15px; max-width: 80%;">
+                                <p style="color: var(--text-primary); line-height: 1.6;">Hello! 👋 I'm your FitBurn AI Assistant. I can help you with:</p>
+                                <ul style="color: var(--text-secondary); margin-top: 10px; padding-left: 20px;">
+                                    <li>Fitness and workout advice</li>
+                                    <li>Nutrition and diet tips</li>
+                                    <li>Calorie information</li>
+                                    <li>Weight loss/gain strategies</li>
+                                    <li>Exercise recommendations</li>
+                                </ul>
+                                <p style="color: var(--text-primary); margin-top: 10px;">Ask me anything! 💪</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 10px;">
+                        <button onclick="askQuickQuestion('How many calories should I eat daily?')" style="padding: 8px 15px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; color: var(--text-primary); cursor: pointer; font-size: 0.85rem; transition: all 0.3s;">
+                            🔥 Daily calories?
+                        </button>
+                        <button onclick="askQuickQuestion('Best exercises for weight loss?')" style="padding: 8px 15px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; color: var(--text-primary); cursor: pointer; font-size: 0.85rem; transition: all 0.3s;">
+                            🏃 Weight loss exercises
+                        </button>
+                        <button onclick="askQuickQuestion('How to build muscle fast?')" style="padding: 8px 15px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; color: var(--text-primary); cursor: pointer; font-size: 0.85rem; transition: all 0.3s;">
+                            💪 Build muscle
+                        </button>
+                        <button onclick="askQuickQuestion('What should I eat before workout?')" style="padding: 8px 15px; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; color: var(--text-primary); cursor: pointer; font-size: 0.85rem; transition: all 0.3s;">
+                            🍎 Pre-workout food
+                        </button>
+                    </div>
+                    <div style="display: flex; gap: 15px;">
+                        <input type="text" id="chat-input" placeholder="Ask me anything about fitness..." style="flex: 1; padding: 15px 20px; background: #1a1a2e; border: 1px solid var(--glass-border); border-radius: 12px; color: #ffffff; font-size: 1rem;" onkeypress="if(event.key === 'Enter') sendMessage()">
+                        <button onclick="sendMessage()" style="padding: 15px 30px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; transition: all 0.3s;">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="page-section" id="section-history" style="display: none;">
+        <div class="section-card history-section" id="history">
+            <div class="history-header">
+                <h3 class="history-title">
+                    <i class="fas fa-history"></i> Prediction History
+                </h3>
+                {% if history and history|length > 0 %}
+                <button class="btn-clear" onclick="clearHistory()">
+                    <i class="fas fa-trash-alt"></i> Clear
+                </button>
+                {% endif %}
+            </div>
+            {% if history and history|length > 0 %}
+            <div class="history-grid">
+                {% for item in history %}
+                <div class="history-card">
+                    <div class="history-card-header">
+                        <div class="history-calories">{{ item.calories }} <span style="font-size: 0.8rem; font-weight: 400;">kcal</span></div>
+                        <div class="history-date">
+                            <i class="fas fa-calendar-alt"></i><br>
+                            {{ item.timestamp }}
+                        </div>
+                    </div>
+                    <div class="history-stats">
+                        <div class="history-stat">
+                            <div class="history-stat-value">{{ item.steps }}</div>
+                            <div class="history-stat-label">Steps</div>
+                        </div>
+                        <div class="history-stat">
+                            <div class="history-stat-value">{{ item.workout_mins }}m</div>
+                            <div class="history-stat-label">Workout</div>
+                        </div>
+                        <div class="history-stat">
+                            <div class="history-stat-value">{{ item.bmi }}</div>
+                            <div class="history-stat-label">BMI</div>
+                        </div>
+                        <div class="history-stat">
+                            <div class="history-stat-value">{{ item.health_score }}</div>
+                            <div class="history-stat-label">Score</div>
+                        </div>
+                    </div>
+                    <span class="history-badge {{ item.bmi_status|lower }}">{{ item.bmi_status }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-history">
+                <i class="fas fa-clipboard-list"></i>
+                <p>No prediction history yet.</p>
+                <p style="font-size: 0.85rem; margin-top: 5px;">Make your first prediction to start tracking!</p>
+            </div>
+            {% endif %}
+        </div>
+        </div>
+    </main>
+    <script>
+        function showSection(sectionName) {
+            document.querySelectorAll('.page-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            const targetSection = document.getElementById('section-' + sectionName);
+            if (targetSection) {
+                targetSection.style.display = 'block';
+            }
+            const titles = {
+                'dashboard': 'Dashboard',
+                'predict': 'Predict Calories',
+                'results': 'Your Results',
+                'history': 'Prediction History',
+                'weekly-plan': 'Weekly Workout Plan',
+                'nutrition': 'Nutrition Guide',
+                'ai-insights': 'AI Health Insights',
+                'weather': 'Weather-Based Tips',
+                'timer': 'Workout Timer',
+                'bmi-calc': 'BMI Calculator',
+                'food-calc': 'Food Calorie Counter',
+                'motivation': 'Daily Motivation',
+                'gamification': 'Fitness Gamification',
+                'chatbot': 'AI Fitness Assistant'
+            };
+            document.getElementById('page-title').textContent = titles[sectionName] || 'Dashboard';
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.nav-item').classList.add('active');
+            document.getElementById('sidebar').classList.remove('open');
+        }
+        function playSound(type) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            if (type === 'success') {
+                oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+                oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+                oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // G5
+            } else if (type === 'click') {
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            } else if (type === 'lap') {
+                oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+                oscillator.frequency.setValueAtTime(880, audioContext.currentTime + 0.1);
+            } else if (type === 'complete') {
+                oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+                oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.15);
+                oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.3);
+                oscillator.frequency.setValueAtTime(1046.50, audioContext.currentTime + 0.45);
+            }
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+        let timerInterval = null;
+        let timerSeconds = 0;
+        let timerRunning = false;
+        let lapCount = 0;
+        let countdownMode = false;
+        let countdownTarget = 0;
+        function formatTime(seconds) {
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        function startTimer() {
+            if (!timerRunning) {
+                timerRunning = true;
+                playSound('click');
+                document.getElementById('btn-start').style.display = 'none';
+                document.getElementById('btn-pause').style.display = 'inline-block';
+                timerInterval = setInterval(() => {
+                    if (countdownMode) {
+                        timerSeconds--;
+                        if (timerSeconds <= 0) {
+                            timerSeconds = 0;
+                            pauseTimer();
+                            playSound('complete');
+                            alert('⏰ Timer Complete! Great workout!');
+                        }
+                    } else {
+                        timerSeconds++;
+                    }
+                    document.getElementById('timer-display').textContent = formatTime(timerSeconds);
+                }, 1000);
+            }
+        }
+        function pauseTimer() {
+            timerRunning = false;
+            clearInterval(timerInterval);
+            playSound('click');
+            document.getElementById('btn-start').style.display = 'inline-block';
+            document.getElementById('btn-pause').style.display = 'none';
+        }
+        function resetTimer() {
+            pauseTimer();
+            timerSeconds = 0;
+            lapCount = 0;
+            countdownMode = false;
+            document.getElementById('timer-display').textContent = '00:00:00';
+            document.getElementById('laps-container').style.display = 'none';
+            document.getElementById('laps-list').innerHTML = '';
+            playSound('click');
+        }
+        function addLap() {
+            if (timerSeconds > 0) {
+                lapCount++;
+                playSound('lap');
+                const lapTime = formatTime(timerSeconds);
+                const lapsContainer = document.getElementById('laps-container');
+                const lapsList = document.getElementById('laps-list');
+                lapsContainer.style.display = 'block';
+                lapsList.innerHTML = `<div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--glass-border);">
+                    <span style="color: var(--primary); font-weight: 600;">Lap ${lapCount}</span>
+                    <span style="color: var(--text-primary);">${lapTime}</span>
+                </div>` + lapsList.innerHTML;
+            }
+        }
+        function setPresetTimer(seconds) {
+            resetTimer();
+            timerSeconds = seconds;
+            countdownMode = true;
+            countdownTarget = seconds;
+            document.getElementById('timer-display').textContent = formatTime(seconds);
+            playSound('click');
+        }
+        function calculateBMI() {
+            const weight = parseFloat(document.getElementById('bmi-weight').value);
+            const height = parseFloat(document.getElementById('bmi-height').value);
+            if (!weight || !height || weight <= 0 || height <= 0) {
+                alert('Please enter valid weight and height!');
+                return;
+            }
+            playSound('success');
+            const heightM = height / 100;
+            const bmi = weight / (heightM * heightM);
+            const bmiRounded = bmi.toFixed(1);
+            let category, color, message;
+            if (bmi < 18.5) {
+                category = 'Underweight';
+                color = '#3498db';
+                message = 'You may need to gain some weight. Consider increasing calorie intake and strength training.';
+            } else if (bmi < 25) {
+                category = 'Normal';
+                color = '#27ae60';
+                message = 'Great! You have a healthy BMI. Keep maintaining your current lifestyle.';
+            } else if (bmi < 30) {
+                category = 'Overweight';
+                color = '#f39c12';
+                message = 'Consider increasing physical activity and monitoring your diet.';
+            } else {
+                category = 'Obese';
+                color = '#e74c3c';
+                message = 'It\'s recommended to consult a healthcare provider for a personalized plan.';
+            }
+            document.getElementById('bmi-result').style.display = 'block';
+            document.getElementById('bmi-value').textContent = bmiRounded;
+            document.getElementById('bmi-value').style.color = color;
+            document.getElementById('bmi-category').textContent = category;
+            document.getElementById('bmi-category').style.color = color;
+            document.getElementById('bmi-message').textContent = message;
+        }
+        let foodLog = [];
+        let totalCalories = 0;
+        function addFood() {
+            const select = document.getElementById('food-select');
+            const quantity = parseInt(document.getElementById('food-quantity').value) || 1;
+            if (!select.value) {
+                alert('Please select a food item!');
+                return;
+            }
+            playSound('click');
+            const calories = parseInt(select.value) * quantity;
+            const foodName = select.options[select.selectedIndex].text.split(' - ')[0];
+            foodLog.push({ name: foodName, calories: calories, quantity: quantity });
+            totalCalories += calories;
+            updateFoodList();
+            select.value = '';
+            document.getElementById('food-quantity').value = 1;
+        }
+        function updateFoodList() {
+            const listContainer = document.getElementById('food-list');
+            if (foodLog.length === 0) {
+                listContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No food added yet</p>';
+            } else {
+                listContainer.innerHTML = foodLog.map((item, index) => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--glass-border);">
+                        <div>
+                            <span style="color: var(--text-primary);">${item.name}</span>
+                            <span style="color: var(--text-muted); font-size: 0.85rem;"> x${item.quantity}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="color: var(--primary); font-weight: 600;">${item.calories} cal</span>
+                            <button onclick="removeFood(${index})" style="background: none; border: none; color: var(--danger); cursor: pointer;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            document.getElementById('total-calories').textContent = totalCalories;
+        }
+        function removeFood(index) {
+            totalCalories -= foodLog[index].calories;
+            foodLog.splice(index, 1);
+            updateFoodList();
+            playSound('click');
+        }
+        function clearFoodLog() {
+            foodLog = [];
+            totalCalories = 0;
+            updateFoodList();
+            playSound('click');
+        }
+        function addCustomFood() {
+            const foodName = document.getElementById('custom-food-name').value.trim();
+            const calories = parseInt(document.getElementById('custom-food-calories').value);
+            const quantity = parseInt(document.getElementById('custom-food-quantity').value) || 1;
+            if (!foodName) {
+                alert('Please enter food name!');
+                return;
+            }
+            if (!calories || calories <= 0) {
+                alert('Please enter valid calories!');
+                return;
+            }
+            playSound('click');
+            const totalCal = calories * quantity;
+            foodLog.push({ name: foodName + ' (Custom)', calories: totalCal, quantity: quantity });
+            totalCalories += totalCal;
+            updateFoodList();
+            document.getElementById('custom-food-name').value = '';
+            document.getElementById('custom-food-calories').value = '';
+            document.getElementById('custom-food-quantity').value = 1;
+        }
+        const motivationQuotes = [
+            { quote: "The only bad workout is the one that didn't happen.", author: "Unknown" },
+            { quote: "Your body can stand almost anything. It's your mind you have to convince.", author: "Unknown" },
+            { quote: "Sore today, strong tomorrow.", author: "Unknown" },
+            { quote: "Don't stop when you're tired. Stop when you're done.", author: "Unknown" },
+            { quote: "The pain you feel today will be the strength you feel tomorrow.", author: "Unknown" },
+            { quote: "Wake up with determination. Go to bed with satisfaction.", author: "Unknown" },
+            { quote: "Take care of your body. It's the only place you have to live.", author: "Jim Rohn" },
+            { quote: "Fitness is not about being better than someone else. It's about being better than you used to be.", author: "Khloe Kardashian" },
+            { quote: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+            { quote: "Success is walking from failure to failure with no loss of enthusiasm.", author: "Winston Churchill" },
+            { quote: "The body achieves what the mind believes.", author: "Unknown" },
+            { quote: "Train insane or remain the same.", author: "Unknown" },
+            { quote: "No pain, no gain. Shut up and train.", author: "Unknown" },
+            { quote: "Sweat is just fat crying.", author: "Unknown" },
+            { quote: "The difference between try and triumph is a little umph.", author: "Marvin Phillips" },
+            { quote: "Champions keep playing until they get it right.", author: "Billie Jean King" },
+            { quote: "If it doesn't challenge you, it won't change you.", author: "Fred DeVito" },
+            { quote: "The harder you work, the luckier you get.", author: "Gary Player" },
+            { quote: "Be stronger than your excuses.", author: "Unknown" },
+            { quote: "The only limit is the one you set yourself.", author: "Unknown" }
+        ];
+        const dailyChallenges = [
+            "Complete 50 jumping jacks, 20 push-ups, and 30 squats!",
+            "Do a 30-minute brisk walk or jog today!",
+            "Hold a plank for 2 minutes total (break it up if needed)!",
+            "Complete 100 crunches throughout the day!",
+            "Do 50 lunges (25 each leg) and 40 mountain climbers!",
+            "Try 20 burpees - the ultimate full body workout!",
+            "Take 10,000 steps today - get moving!",
+            "Do 3 sets of 15 tricep dips using a chair!",
+            "Complete a 15-minute HIIT workout!",
+            "Do 30 push-ups, 30 sit-ups, and 30 squats!",
+            "Try wall sits for a total of 3 minutes!",
+            "Jump rope for 10 minutes (or pretend jump rope)!",
+            "Do 50 high knees and 50 butt kicks!",
+            "Complete 4 sets of 20 bicycle crunches!",
+            "Hold a squat position for 2 minutes total!"
+        ];
+        function getNewQuote() {
+            playSound('click');
+            const randomQuote = motivationQuotes[Math.floor(Math.random() * motivationQuotes.length)];
+            document.getElementById('motivation-quote').textContent = '"' + randomQuote.quote + '"';
+            document.getElementById('quote-author').textContent = '— ' + randomQuote.author;
+        }
+        function getNewChallenge() {
+            playSound('click');
+            const randomChallenge = dailyChallenges[Math.floor(Math.random() * dailyChallenges.length)];
+            document.getElementById('daily-challenge').textContent = randomChallenge;
+        }
+        let userXP = parseInt(localStorage.getItem('fitburn_xp')) || 0;
+        let userLevel = parseInt(localStorage.getItem('fitburn_level')) || 1;
+        let userStreak = parseInt(localStorage.getItem('fitburn_streak')) || 0;
+        let userBadges = parseInt(localStorage.getItem('fitburn_badges')) || 0;
+        let completedTasks = JSON.parse(localStorage.getItem('fitburn_tasks')) || [];
+        function initGamification() {
+            document.getElementById('user-xp').textContent = userXP;
+            document.getElementById('user-level').textContent = userLevel;
+            document.getElementById('user-streak').textContent = userStreak;
+            document.getElementById('user-badges').textContent = userBadges;
+            updateXPBar();
+            updateBadges();
+            completedTasks.forEach(taskId => {
+                const checkbox = document.getElementById('task' + taskId);
+                if (checkbox) {
+                    checkbox.checked = true;
+                    checkbox.disabled = true;
+                }
+            });
+        }
+        function completeTask(taskId, xpAmount) {
+            if (completedTasks.includes(taskId)) return;
+            playSound('success');
+            completedTasks.push(taskId);
+            localStorage.setItem('fitburn_tasks', JSON.stringify(completedTasks));
+            addXP(xpAmount);
+            const checkbox = document.getElementById('task' + taskId);
+            if (checkbox) checkbox.disabled = true;
+        }
+        function addXP(amount) {
+            userXP += amount;
+            const xpNeeded = userLevel * 100;
+            if (userXP >= xpNeeded) {
+                userXP -= xpNeeded;
+                userLevel++;
+                playSound('success');
+                alert('🎉 Congratulations! You reached Level ' + userLevel + '!');
+            }
+            localStorage.setItem('fitburn_xp', userXP);
+            localStorage.setItem('fitburn_level', userLevel);
+            document.getElementById('user-xp').textContent = userXP;
+            document.getElementById('user-level').textContent = userLevel;
+            updateXPBar();
+            updateBadges();
+        }
+        function updateXPBar() {
+            const xpNeeded = userLevel * 100;
+            const progress = (userXP / xpNeeded) * 100;
+            document.getElementById('xp-progress-bar').style.width = progress + '%';
+            document.getElementById('xp-progress-text').textContent = userXP + ' / ' + xpNeeded + ' XP';
+        }
+        function updateBadges() {
+            let badges = 0;
+            if (userLevel >= 1) {
+                document.getElementById('badge-beginner').style.opacity = '1';
+                badges++;
+            }
+            if (userStreak >= 7) {
+                document.getElementById('badge-consistent').style.opacity = '1';
+                badges++;
+            }
+            if (userLevel >= 5) {
+                document.getElementById('badge-warrior').style.opacity = '1';
+                badges++;
+            }
+            if (userLevel >= 10) {
+                document.getElementById('badge-champion').style.opacity = '1';
+                badges++;
+            }
+            if (userLevel >= 20) {
+                document.getElementById('badge-legend').style.opacity = '1';
+                badges++;
+            }
+            userBadges = badges;
+            localStorage.setItem('fitburn_badges', userBadges);
+            document.getElementById('user-badges').textContent = userBadges;
+        }
+        document.addEventListener('DOMContentLoaded', initGamification);
+        const fitnessResponses = {
+            'calories': 'For daily calorie needs, use this formula:\n\n👨 Men: BMR = 88.36 + (13.4 × weight in kg) + (4.8 × height in cm) - (5.7 × age)\n👩 Women: BMR = 447.6 + (9.2 × weight in kg) + (3.1 × height in cm) - (4.3 × age)\n\nThen multiply by activity level:\n• Sedentary: BMR × 1.2\n• Light active: BMR × 1.375\n• Moderate: BMR × 1.55\n• Very active: BMR × 1.725\n• Extra active: BMR × 1.9',
+            'weight loss': 'Best exercises for weight loss:\n\n🔥 High-Intensity Interval Training (HIIT)\n🏃 Running/Jogging (400-600 cal/hour)\n🚴 Cycling (500-700 cal/hour)\n🏊 Swimming (400-700 cal/hour)\n🦵 Squats, Lunges, Burpees\n🧘 Yoga (burns 200-400 cal/hour)\n\n💡 Tip: Combine cardio with strength training for best results! Aim for 150-300 minutes of moderate exercise per week.',
+            'muscle': 'To build muscle fast:\n\n💪 Training Tips:\n• Lift heavy (8-12 reps for hypertrophy)\n• Progressive overload (increase weight gradually)\n• Compound exercises: Squats, Deadlifts, Bench Press\n• Train each muscle group 2x/week\n• Get 7-9 hours of sleep\n\n🍗 Nutrition:\n• Eat 1.6-2.2g protein per kg bodyweight\n• Caloric surplus of 300-500 calories\n• Good protein sources: Chicken, Fish, Eggs, Whey',
+            'pre-workout': 'Best pre-workout foods (eat 1-2 hours before):\n\n🍌 Banana - Quick energy, potassium\n🥣 Oatmeal - Complex carbs, sustained energy\n🍞 Toast with peanut butter\n🍎 Apple with almond butter\n🥤 Protein shake with fruit\n🍚 Rice cakes with honey\n\n⚠️ Avoid: Heavy meals, high fat/fiber foods\n💧 Don\'t forget to hydrate!',
+            'post-workout': 'Best post-workout foods (within 30-60 min):\n\n🍗 Grilled chicken with rice\n🥚 Eggs with whole grain toast\n🥤 Protein shake with banana\n🐟 Salmon with sweet potato\n🥛 Greek yogurt with berries\n\n📊 Aim for: 20-40g protein + carbs\n💧 Rehydrate with water or electrolytes!',
+            'protein': 'Daily protein requirements:\n\n📊 General: 0.8g per kg bodyweight\n💪 Muscle building: 1.6-2.2g per kg\n🏃 Athletes: 1.4-2.0g per kg\n👴 Older adults: 1.0-1.2g per kg\n\n🥩 Top Protein Sources:\n• Chicken breast: 31g per 100g\n• Eggs: 6g per egg\n• Greek yogurt: 10g per 100g\n• Salmon: 25g per 100g\n• Lentils: 9g per 100g',
+            'cardio': 'Cardio workout guide:\n\n❤️ Benefits: Heart health, fat loss, endurance\n\n🏃 Types:\n• LISS (Low-Intensity): Walking, light cycling (30-60 min)\n• HIIT (High-Intensity): Sprints, burpees (15-25 min)\n• Moderate: Jogging, swimming (30-45 min)\n\n📅 Recommended: 150 min moderate OR 75 min vigorous cardio per week\n\n💡 Best time: Morning for fat burn, evening for performance',
+            'abs': 'Best exercises for abs:\n\n🔥 Core Exercises:\n• Planks (30-60 sec holds)\n• Bicycle crunches (15-20 reps)\n• Mountain climbers (30 sec)\n• Leg raises (15 reps)\n• Russian twists (20 reps)\n• Dead bugs (10 each side)\n\n💡 Tips:\n• Abs are made in the kitchen - reduce body fat!\n• Train abs 3-4x per week\n• Focus on form, not speed',
+            'default': 'I can help you with:\n\n🔥 Calories & Nutrition\n💪 Muscle Building\n🏃 Weight Loss\n🍎 Pre/Post Workout Meals\n🥗 Diet Planning\n❤️ Cardio Workouts\n🏋️ Strength Training\n\nTry asking:\n• "How many calories should I eat?"\n• "Best exercises for weight loss"\n• "How to build muscle?"\n• "What to eat before workout?"'
+        };
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (!message) return;
+            playSound('click');
+            addChatMessage(message, 'user');
+            input.value = '';
+            setTimeout(() => {
+                const response = getBotResponse(message);
+                addChatMessage(response, 'bot');
+            }, 500);
+        }
+        function askQuickQuestion(question) {
+            document.getElementById('chat-input').value = question;
+            sendMessage();
+        }
+        function addChatMessage(message, sender) {
+            const chatContainer = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.style.marginBottom = '20px';
+            if (sender === 'user') {
+                messageDiv.innerHTML = `
+                    <div style="display: flex; gap: 15px; justify-content: flex-end;">
+                        <div style="background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 15px 20px; border-radius: 15px 0 15px 15px; max-width: 80%; color: white;">
+                            <p style="line-height: 1.6;">${message}</p>
+                        </div>
+                        <div style="width: 45px; height: 45px; background: var(--glass); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="fas fa-user" style="color: var(--text-primary);"></i>
+                        </div>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div style="display: flex; gap: 15px;">
+                        <div style="width: 45px; height: 45px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="fas fa-robot" style="color: white; font-size: 1.2rem;"></i>
+                        </div>
+                        <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2)); padding: 15px 20px; border-radius: 0 15px 15px 15px; max-width: 80%;">
+                            <p style="color: var(--text-primary); line-height: 1.6; white-space: pre-line;">${message}</p>
+                        </div>
+                    </div>
+                `;
+            }
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        function getBotResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            if (lowerMessage.includes('calorie') || lowerMessage.includes('eat daily') || lowerMessage.includes('how many')) {
+                return fitnessResponses['calories'];
+            } else if (lowerMessage.includes('weight loss') || lowerMessage.includes('lose weight') || lowerMessage.includes('fat')) {
+                return fitnessResponses['weight loss'];
+            } else if (lowerMessage.includes('muscle') || lowerMessage.includes('bulk') || lowerMessage.includes('gain')) {
+                return fitnessResponses['muscle'];
+            } else if (lowerMessage.includes('pre-workout') || lowerMessage.includes('before workout') || lowerMessage.includes('before exercise')) {
+                return fitnessResponses['pre-workout'];
+            } else if (lowerMessage.includes('post-workout') || lowerMessage.includes('after workout') || lowerMessage.includes('after exercise')) {
+                return fitnessResponses['post-workout'];
+            } else if (lowerMessage.includes('protein')) {
+                return fitnessResponses['protein'];
+            } else if (lowerMessage.includes('cardio') || lowerMessage.includes('running') || lowerMessage.includes('heart')) {
+                return fitnessResponses['cardio'];
+            } else if (lowerMessage.includes('abs') || lowerMessage.includes('core') || lowerMessage.includes('six pack')) {
+                return fitnessResponses['abs'];
+            } else if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+                return 'Hello! 👋 How can I help you with your fitness journey today?';
+            } else if (lowerMessage.includes('thank')) {
+                return 'You\'re welcome! 💪 Keep crushing your fitness goals! Feel free to ask if you need more help.';
+            } else {
+                return fitnessResponses['default'];
+            }
+        }
+        function fetchWeather() {
+            document.getElementById('weather-loading').style.display = 'block';
+            document.getElementById('weather-content').style.display = 'none';
+            document.getElementById('weather-error').style.display = 'none';
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    position => getWeatherData(position.coords.latitude, position.coords.longitude),
+                    error => {
+                        getWeatherData(31.5497, 74.3436);
+                    }
+                );
+            } else {
+                getWeatherData(31.5497, 74.3436);
+            }
+        }
+        function getWeatherData(lat, lon) {
+            const apiKey = 'bd5e378503939ddaee76f12ad7a97608'; // Free OpenWeatherMap key
+            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    displayWeather(data);
+                })
+                .catch(error => {
+                    document.getElementById('weather-loading').style.display = 'none';
+                    document.getElementById('weather-error').style.display = 'block';
+                });
+        }
+        function displayWeather(data) {
+            const temp = Math.round(data.main.temp);
+            const humidity = data.main.humidity;
+            const condition = data.weather[0].main;
+            const city = data.name;
+            document.getElementById('weather-temp').textContent = temp + '°C';
+            document.getElementById('weather-humidity').textContent = humidity + '%';
+            document.getElementById('weather-condition').textContent = condition;
+            document.getElementById('weather-city').textContent = city;
+            const iconMap = {
+                'Clear': 'fa-sun',
+                'Clouds': 'fa-cloud',
+                'Rain': 'fa-cloud-rain',
+                'Drizzle': 'fa-cloud-rain',
+                'Thunderstorm': 'fa-bolt',
+                'Snow': 'fa-snowflake',
+                'Mist': 'fa-smog',
+                'Fog': 'fa-smog',
+                'Haze': 'fa-smog'
+            };
+            document.getElementById('weather-icon-main').className = 'fas ' + (iconMap[condition] || 'fa-cloud');
+            let workoutRec = '';
+            if (condition === 'Rain' || condition === 'Thunderstorm' || condition === 'Snow') {
+                workoutRec = `
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <i class="fas fa-home" style="font-size: 2rem; color: var(--secondary);"></i>
+                        <div>
+                            <h5 style="color: var(--text-primary); margin-bottom: 5px;">🏠 Indoor Workout Recommended</h5>
+                            <p style="color: var(--text-secondary);">Weather is not ideal for outdoor activities.</p>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px;">
+                        <div style="background: rgba(78, 205, 196, 0.1); padding: 15px; border-radius: 10px; text-align: center;">
+                            <i class="fas fa-dumbbell" style="color: var(--secondary); font-size: 1.5rem;"></i>
+                            <p style="margin-top: 8px; color: var(--text-primary);">Home Gym</p>
+                        </div>
+                        <div style="background: rgba(102, 126, 234, 0.1); padding: 15px; border-radius: 10px; text-align: center;">
+                            <i class="fas fa-child" style="color: #667eea; font-size: 1.5rem;"></i>
+                            <p style="margin-top: 8px; color: var(--text-primary);">Yoga</p>
+                        </div>
+                        <div style="background: rgba(255, 107, 107, 0.1); padding: 15px; border-radius: 10px; text-align: center;">
+                            <i class="fas fa-running" style="color: var(--primary); font-size: 1.5rem;"></i>
+                            <p style="margin-top: 8px; color: var(--text-primary);">HIIT</p>
+                        </div>
+                        <div style="background: rgba(255, 230, 109, 0.1); padding: 15px; border-radius: 10px; text-align: center;">
+                            <i class="fas fa-heartbeat" style="color: var(--accent); font-size: 1.5rem;"></i>
+                            <p style="margin-top: 8px; color: var(--text-primary);">Cardio</p>
+                        </div>
+                    </div>
+                `;
+            } else if (temp > 35) {
+                workoutRec = `
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <i class="fas fa-sun" style="font-size: 2rem; color: #f39c12;"></i>
+                        <div>
+                            <h5 style="color: var(--text-primary); margin-bottom: 5px;">☀️ Hot Weather Alert!</h5>
+                            <p style="color: var(--text-secondary);">Temperature is ${temp}°C. Avoid outdoor activities during peak hours.</p>
+                        </div>
+                    </div>
+                    <div style="background: rgba(243, 156, 18, 0.1); padding: 15px; border-radius: 10px; margin-top: 15px;">
+                        <p style="color: var(--text-primary);"><i class="fas fa-clock"></i> <b>Best Time:</b> Early morning (5-7 AM) or evening (6-8 PM)</p>
+                        <p style="color: var(--text-secondary); margin-top: 10px;"><i class="fas fa-tshirt"></i> Wear light, breathable clothing</p>
+                        <p style="color: var(--text-secondary); margin-top: 5px;"><i class="fas fa-swimmer"></i> Swimming is highly recommended!</p>
+                    </div>
+                `;
+            } else if (temp < 10) {
+                workoutRec = `
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <i class="fas fa-snowflake" style="font-size: 2rem; color: #3498db;"></i>
+                        <div>
+                            <h5 style="color: var(--text-primary); margin-bottom: 5px;">❄️ Cold Weather Tips</h5>
+                            <p style="color: var(--text-secondary);">Temperature is ${temp}°C. Warm up properly before outdoor exercise.</p>
+                        </div>
+                    </div>
+                    <div style="background: rgba(52, 152, 219, 0.1); padding: 15px; border-radius: 10px; margin-top: 15px;">
+                        <p style="color: var(--text-primary);"><i class="fas fa-layer-group"></i> <b>Dress in layers</b> - easy to remove as you warm up</p>
+                        <p style="color: var(--text-secondary); margin-top: 10px;"><i class="fas fa-fire"></i> Extended warm-up (10-15 mins) is essential</p>
+                        <p style="color: var(--text-secondary); margin-top: 5px;"><i class="fas fa-walking"></i> Brisk walking & jogging are great options</p>
+                    </div>
+                `;
+            } else {
+                workoutRec = `
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <i class="fas fa-check-circle" style="font-size: 2rem; color: var(--success);"></i>
+                        <div>
+                            <h5 style="color: var(--text-primary); margin-bottom: 5px;">✅ Perfect Workout Weather!</h5>
+                            <p style="color: var(--text-secondary);">Temperature is ${temp}°C. Great conditions for any outdoor activity!</p>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px;">
+                        <div style="background: rgba(0, 184, 148, 0.1); padding: 15px; border-radius: 10px; text-align: center;">
+                            <i class="fas fa-running" style="color: var(--success); font-size: 1.5rem;"></i>
+                            <p style="margin-top: 8px; color: var(--text-primary);">Outdoor Run</p>
+                        </div>
+                        <div style="background: rgba(78, 205, 196, 0.1); padding: 15px; border-radius: 10px; text-align: center;">
+                            <i class="fas fa-bicycle" style="color: var(--secondary); font-size: 1.5rem;"></i>
+                            <p style="margin-top: 8px; color: var(--text-primary);">Cycling</p>
+                        </div>
+                        <div style="background: rgba(102, 126, 234, 0.1); padding: 15px; border-radius: 10px; text-align: center;">
+                            <i class="fas fa-hiking" style="color: #667eea; font-size: 1.5rem;"></i>
+                            <p style="margin-top: 8px; color: var(--text-primary);">Hiking</p>
+                        </div>
+                        <div style="background: rgba(255, 107, 107, 0.1); padding: 15px; border-radius: 10px; text-align: center;">
+                            <i class="fas fa-futbol" style="color: var(--primary); font-size: 1.5rem;"></i>
+                            <p style="margin-top: 8px; color: var(--text-primary);">Sports</p>
+                        </div>
+                    </div>
+                `;
+            }
+            document.getElementById('workout-recommendation').innerHTML = workoutRec;
+            let waterIntake = 2.5;
+            if (temp > 30) waterIntake = 3.5;
+            else if (temp > 25) waterIntake = 3.0;
+            else if (temp < 15) waterIntake = 2.0;
+            const hydrationHtml = `
+                <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                            <i class="fas fa-tint" style="font-size: 1.5rem; color: #3498db;"></i>
+                            <span style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary);">${waterIntake}L</span>
+                            <span style="color: var(--text-secondary);">recommended daily intake</span>
+                        </div>
+                        <div style="background: var(--darker); padding: 15px; border-radius: 10px;">
+                            <p style="color: var(--text-primary); margin-bottom: 10px;"><i class="fas fa-info-circle" style="color: #3498db;"></i> Based on ${temp}°C temperature and ${humidity}% humidity</p>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                                ${temp > 30 ? '🔥 High heat - drink water every 15-20 minutes during exercise' : 
+                                  temp > 20 ? '☀️ Moderate heat - keep a water bottle handy' : 
+                                  '❄️ Cool weather - don\'t forget to hydrate even when not thirsty'}
+                            </p>
+                        </div>
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <h5 style="color: var(--text-primary); margin-bottom: 10px;"><i class="fas fa-lightbulb"></i> Pro Tips</h5>
+                        <ul style="color: var(--text-secondary); padding-left: 20px;">
+                            <li>Drink 500ml water 2 hours before workout</li>
+                            <li>Sip 200ml every 15-20 mins during exercise</li>
+                            <li>Add electrolytes for workouts > 60 mins</li>
+                            <li>Check urine color - pale yellow is ideal</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+            document.getElementById('hydration-tips').innerHTML = hydrationHtml;
+            document.getElementById('weather-loading').style.display = 'none';
+            document.getElementById('weather-content').style.display = 'block';
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(fetchWeather, 1000);
+        });
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            const text = document.getElementById('theme-text');
+            if (html.getAttribute('data-theme') === 'dark') {
+                html.setAttribute('data-theme', 'light');
+                icon.className = 'fas fa-sun';
+                text.textContent = 'Light Mode';
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                icon.className = 'fas fa-moon';
+                text.textContent = 'Dark Mode';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            const text = document.getElementById('theme-text');
+            html.setAttribute('data-theme', savedTheme);
+            if (savedTheme === 'light') {
+                icon.className = 'fas fa-sun';
+                text.textContent = 'Light Mode';
+            }
+            {% if show_result %}
+            document.getElementById('section-results').style.display = 'block';
+            document.getElementById('section-dashboard').style.display = 'none';
+            document.getElementById('page-title').textContent = 'Your Results';
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelector('.nav-item[onclick*="results"]').classList.add('active');
+            {% endif %}
+        });
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+        function clearHistory() {
+            if (confirm('Are you sure you want to clear all prediction history?')) {
+                fetch('/clear_history', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        }
+                    });
+            }
+        }
+        {% if show_result %}
+        document.addEventListener('DOMContentLoaded', function() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const textColor = isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)';
+            const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+            Chart.defaults.color = textColor;
+            Chart.defaults.borderColor = gridColor;
+            new Chart(document.getElementById('calorieChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Workout', 'Daily Activity', 'BMR'],
+                    datasets: [{
+                        data: [
+                            {{ (result.calories * 0.35)|round|int }},
+                            {{ (result.calories * 0.25)|round|int }},
+                            {{ (result.calories * 0.40)|round|int }}
+                        ],
+                        backgroundColor: ['#ff6b6b', '#4ecdc4', '#ffe66d'],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 15, usePointStyle: true }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+            new Chart(document.getElementById('metricsChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['BMI', 'Fitness', 'Health', 'Intensity'],
+                    datasets: [{
+                        label: 'Your Score',
+                        data: [
+                            {{ result.bmi }},
+                            {{ result.fitness_score }},
+                            {{ result.health_score }},
+                            {{ result.intensity_score * 10 }}
+                        ],
+                        backgroundColor: ['#ff6b6b', '#4ecdc4', '#00b894', '#667eea'],
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { color: gridColor }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+            new Chart(document.getElementById('progressChart'), {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Calories',
+                        data: [
+                            {{ (result.calories * 0.85)|round|int }},
+                            {{ (result.calories * 0.92)|round|int }},
+                            {{ (result.calories * 0.78)|round|int }},
+                            {{ result.calories }},
+                            {{ (result.calories * 1.05)|round|int }},
+                            {{ (result.calories * 1.12)|round|int }},
+                            {{ (result.calories * 0.65)|round|int }}
+                        ],
+                        borderColor: '#ff6b6b',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#ff6b6b',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: { color: gridColor }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+            new Chart(document.getElementById('goalChart'), {
+                type: 'polarArea',
+                data: {
+                    labels: ['Steps', 'Workout', 'Calories', 'Heart Rate'],
+                    datasets: [{
+                        data: [
+                            Math.min(100, ({{ result.steps }} / 10000) * 100),
+                            Math.min(100, ({{ result.workout_mins }} / 60) * 100),
+                            Math.min(100, ({{ result.calories }} / 500) * 100),
+                            Math.min(100, ({{ result.heart_rate }} / 180) * 100)
+                        ],
+                        backgroundColor: [
+                            'rgba(255, 107, 107, 0.7)',
+                            'rgba(78, 205, 196, 0.7)',
+                            'rgba(255, 230, 109, 0.7)',
+                            'rgba(102, 126, 234, 0.7)'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 15, usePointStyle: true }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { color: gridColor },
+                            ticks: { display: false }
+                        }
+                    }
+                }
+            });
+        });
+        {% endif %}
+    </script>
+</body>
+</html>
