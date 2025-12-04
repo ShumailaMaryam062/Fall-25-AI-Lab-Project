@@ -555,7 +555,7 @@ def generate_pdf():
         report_info = [
             ['Report ID:', f'FB-{datetime.now().strftime("%Y%m%d-%H%M")}'],
             ['Generated:', datetime.now().strftime('%B %d, %Y at %I:%M %p')],
-            ['Model Accuracy:', '97.14%']
+            ['Model Accuracy:', '99.26%']
         ]
         info_table = Table(report_info, colWidths=[120, 250])
         info_table.setStyle(TableStyle([

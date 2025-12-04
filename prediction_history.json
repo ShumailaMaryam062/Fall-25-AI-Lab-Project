@@ -322,5 +322,41 @@
     "fitness_level": "Active",
     "id": 18,
     "timestamp": "2025-12-03 21:10:29"
+  },
+  {
+    "age": 34,
+    "gender": "Male",
+    "body_mass": 23,
+    "height": 175,
+    "steps": 8000,
+    "workout_mins": 43,
+    "exercise_type": "Running",
+    "heart_rate": 120,
+    "intensity": 9,
+    "calories": 1935,
+    "bmi": 7.5,
+    "bmi_status": "Underweight",
+    "health_score": 67,
+    "fitness_level": "Active",
+    "id": 19,
+    "timestamp": "2025-12-04 12:08:51"
+  },
+  {
+    "age": 55,
+    "gender": "Male",
+    "body_mass": 90,
+    "height": 175,
+    "steps": 8000,
+    "workout_mins": 90,
+    "exercise_type": "Running",
+    "heart_rate": 125,
+    "intensity": 6,
+    "calories": 2552,
+    "bmi": 29.4,
+    "bmi_status": "Overweight",
+    "health_score": 80,
+    "fitness_level": "Elite Athlete",
+    "id": 20,
+    "timestamp": "2025-12-04 12:30:06"
   }
 ]
